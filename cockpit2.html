@@ -22,14 +22,16 @@
   @keyframes pspe{0%,100%{box-shadow:0 0 0 0 rgba(10,132,255,0.35)}50%{box-shadow:0 0 0 14px rgba(10,132,255,0)}}
 
   /* Setup */
-  #setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999}
-  .sc{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:36px;width:420px;text-align:center}
+  #setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;overflow-y:auto;padding:20px}
+  .sc{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:36px;width:440px;text-align:center}
   .sc h2{font-size:17px;font-weight:500;margin-bottom:8px}
-  .sc p{font-size:12px;color:var(--t3);margin-bottom:24px;line-height:1.7}
-  .sc input{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:10px 12px;color:var(--t1);font-size:13px;font-family:var(--font);margin-bottom:10px}
-  .sc button{width:100%;background:var(--accent);border:none;color:#fff;border-radius:6px;padding:10px;font-size:13px;cursor:pointer;font-family:var(--font)}
+  .sc p{font-size:12px;color:var(--t3);margin-bottom:16px;line-height:1.7}
+  .sc input{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:10px 12px;color:var(--t1);font-size:13px;font-family:var(--font);margin-bottom:8px}
+  .sc button{width:100%;background:var(--accent);border:none;color:#fff;border-radius:6px;padding:10px;font-size:13px;cursor:pointer;font-family:var(--font);margin-top:4px}
   .sc-err{font-size:12px;color:var(--danger);margin-top:8px;display:none}
   .sc-note{font-size:11px;color:var(--t3);margin-top:12px}
+  .sc-opt{font-size:10px;color:var(--t3);text-align:left;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase}
+  .sc-divider{height:1px;background:var(--b);margin:16px 0 14px}
 
   /* App */
   #app{height:100vh;display:flex;flex-direction:column;padding:14px 16px 0}
@@ -59,13 +61,13 @@
   .sec{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3)}
   .scr{flex:1;overflow-y:auto;min-height:0}
 
-  /* Calendar iframe — EXACTLY from cockpit1.0 */
+  /* Calendar iframe */
   #calHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
   #calLive{font-size:9px;color:var(--accent)}
   #calFrame{flex:1;min-height:0;border-radius:6px;overflow:hidden;border:1px solid var(--b)}
   #calFrame iframe{width:100%;height:100%;border:none;filter:invert(1) hue-rotate(180deg) saturate(0.8)}
 
-  /* Todo */
+  /* Todo / Note shared */
   .tinrow{display:flex;gap:5px;margin-bottom:10px;flex-shrink:0}
   .tin{flex:1;background:var(--s2);border:1px solid var(--b);border-radius:5px;padding:6px 9px;color:var(--t1);font-size:12px;font-family:var(--font)}
   .tpsel{background:var(--s2);border:1px solid var(--b);border-radius:5px;color:var(--t2);font-size:11px;padding:0 5px;cursor:pointer;font-family:var(--font)}
@@ -75,8 +77,12 @@
   .tdone-txt{color:var(--t3)!important;text-decoration:line-through}
   .tptag{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
   .tdel{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:0 2px;line-height:1}
-  .secdone{font-size:9px;color:var(--t3);font-weight:500;letter-spacing:0.08em;text-transform:uppercase;margin:8px 0 5px}
+  .secdonerow{display:flex;justify-content:space-between;align-items:center;margin:8px 0 5px}
+  .secdone{font-size:9px;color:var(--t3);font-weight:500;letter-spacing:0.08em;text-transform:uppercase}
+  .clrdone{background:none;border:none;color:var(--t3);font-size:9px;cursor:pointer;padding:0;font-family:var(--font);text-decoration:underline;text-underline-offset:2px}
+  .clrdone:hover{color:var(--t2)}
   .noitem{font-size:12px;color:var(--t3);text-align:center;padding-top:16px}
+  .edit-in{flex:1;background:var(--s3);border:1px solid var(--bm);border-radius:4px;padding:2px 6px;color:var(--t1);font-size:12px;font-family:var(--font)}
 
   /* Notes */
   .nitem{display:flex;align-items:center;gap:7px;padding:7px 0;border-bottom:1px solid var(--b);cursor:grab;user-select:none}
@@ -103,7 +109,8 @@
   #vBtn.speaking{background:rgba(10,132,255,0.08);border-color:var(--accent);animation:pspe 1.4s ease-in-out infinite}
   #vBtn.error{border-color:var(--danger)}
   #vStatus{font-size:9px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase}
-  .rtlbl{flex:1;display:flex;justify-content:flex-end;font-size:9px;color:var(--t3)}
+  .rtlbl{flex:1;display:flex;justify-content:flex-end;align-items:flex-end}
+  #syncLbl{font-size:9px;color:var(--t3);transition:color 0.3s;text-align:right;line-height:1.6}
   .bsm{background:transparent;border:1px solid var(--b);color:var(--t2);border-radius:4px;padding:3px 9px;cursor:pointer;font-size:12px;line-height:1.4;font-family:var(--font)}
   .spin{display:inline-block;width:12px;height:12px;border:1.5px solid var(--s3);border-top-color:var(--t2);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:middle}
 </style>
@@ -114,11 +121,16 @@
 <div id="setup">
   <div class="sc">
     <h2>Cockpit einrichten</h2>
-    <p>API-Key holen auf<br><strong style="color:var(--t1)">console.anthropic.com</strong> → API Keys → Create Key<br><br>Der Key wird nur lokal gespeichert.</p>
-    <input type="password" id="keyIn" placeholder="sk-ant-api03-..." onkeydown="if(event.key==='Enter')saveKey()">
+    <p>API-Key auf <strong style="color:var(--t1)">console.anthropic.com</strong> → API Keys<br>Alle Daten bleiben lokal / in deinen eigenen Accounts.</p>
+    <input type="password" id="keyIn" placeholder="sk-ant-api03-… (Pflichtfeld)" onkeydown="if(event.key==='Enter')saveKey()">
+    <div class="sc-divider"></div>
+    <div class="sc-opt">Optional</div>
+    <input type="password" id="patIn" placeholder="ghp_… GitHub PAT (für Gist-Sync)">
+    <input type="text" id="gistIn" placeholder="Gist-ID (falls bereits vorhanden)">
+    <input type="text" id="locIn" placeholder="47.4245,9.3767  Standort lat,lon">
     <button onclick="saveKey()">Starten</button>
     <div class="sc-err" id="setupErr"></div>
-    <p class="sc-note">Öffne diese Datei auf deiner GitHub Pages URL für vollen Funktionsumfang.</p>
+    <p class="sc-note">Öffne auf deiner GitHub Pages URL für vollen Funktionsumfang.</p>
   </div>
 </div>
 
@@ -150,7 +162,7 @@
   <!-- Columns -->
   <div id="cols">
 
-    <!-- Calendar — EXACTLY from cockpit1.0 -->
+    <!-- Calendar -->
     <div id="col0" class="col" style="width:33%;display:flex;flex-direction:column">
       <div id="calHead">
         <span class="sec">Kalender</span>
@@ -184,7 +196,7 @@
     </div>
     <div class="cdiv" id="d1"><div class="cdivl"></div></div>
 
-    <!-- Notes (neu statt Chat) -->
+    <!-- Notes -->
     <div id="col2" class="col" style="width:34%">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0">
         <span class="sec">Notizen</span>
@@ -223,16 +235,17 @@
       </div>
       <span id="vStatus">Sprechen</span>
     </div>
-    <div class="rtlbl">Spalten verschiebbar</div>
+    <div class="rtlbl"><span id="syncLbl"></span></div>
   </div>
 </div>
 
 <script>
 'use strict';
-const MODEL = 'claude-3-5-sonnet-20241022';
+const MODEL = 'claude-sonnet-4-6';
 const API   = 'https://api.anthropic.com/v1/messages';
 
-const CAL_EVENTS = [
+// Fallback schedule — kept in sync with events.json in the repo
+const FALLBACK_EVENTS = [
   {title:'Abgabe HA8 – Physik 2',               start:'2026-04-26T23:59:00', type:'deadline'},
   {title:'Physik 2 Praktikum',                  start:'2026-04-27T08:50:00', end:'2026-04-27T11:30:00', location:'TP 207', type:'class'},
   {title:'DTWS – Case Studies',                 start:'2026-04-27T12:00:00', end:'2026-04-27T13:35:00', location:'TS O1.13', type:'class'},
@@ -274,118 +287,288 @@ const CAL_EVENTS = [
   {title:'Prüfungswochen ZHAW',                 start:'2026-06-08', end:'2026-06-17', allDay:true, type:'exam'},
 ];
 
+let CAL_EVENTS = [];
+
+async function loadEvents() {
+  try {
+    const r = await fetch('./events.json');
+    if (r.ok) { CAL_EVENTS = await r.json(); return; }
+  } catch {}
+  CAL_EVENTS = FALLBACK_EVENTS;
+}
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
-const $=id=>document.getElementById(id);
-const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-const todayStr=()=>new Date().toISOString().split('T')[0];
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
 function fmtSw(ms){const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),cs=Math.floor(ms%1000/10);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;}
 function prioCol(p){return p==='hoch'?'#ff453a':p==='mittel'?'#0a84ff':'#48484a';}
 
-// ── API ───────────────────────────────────────────────────────────────────────
-async function ai(system,messages,maxTok=600){
-  const r=await fetch(API,{
-    method:'POST',
-    headers:{'Content-Type':'application/json','x-api-key':localStorage.getItem('dash_key')||'','anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
-    body:JSON.stringify({model:MODEL,max_tokens:maxTok,system,messages})
-  });
-  if(!r.ok){const e=await r.json().catch(()=>({}));throw new Error(e?.error?.message||`HTTP ${r.status}`);}
-  const d=await r.json();
-  return(d.content||[]).filter(b=>b.type==='text').map(b=>b.text).join('').trim();
+function deadlineCountdown(dateStr) {
+  const ms = new Date(dateStr) - new Date();
+  if (ms <= 0) return null;
+  const h = Math.floor(ms / 3600000);
+  const d = Math.floor(ms / 86400000);
+  if (h < 1) return 'bald';
+  if (h < 24) return `in ${h} Std`;
+  if (d === 1) return 'morgen';
+  return `in ${d} Tagen`;
 }
 
+// ── API (prompt caching) ──────────────────────────────────────────────────────
+async function ai(system, messages, maxTok = 600) {
+  const r = await fetch(API, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': localStorage.getItem('dash_key') || '',
+      'anthropic-version': '2023-06-01',
+      'anthropic-beta': 'prompt-caching-2024-07-31',
+      'anthropic-dangerous-direct-browser-access': 'true'
+    },
+    body: JSON.stringify({
+      model: MODEL,
+      max_tokens: maxTok,
+      system: [{type: 'text', text: system, cache_control: {type: 'ephemeral'}}],
+      messages
+    })
+  });
+  if (!r.ok) { const e = await r.json().catch(() => ({})); throw new Error(e?.error?.message || `HTTP ${r.status}`); }
+  const d = await r.json();
+  return (d.content || []).filter(b => b.type === 'text').map(b => b.text).join('').trim();
+}
+
+// ── Gist sync ─────────────────────────────────────────────────────────────────
+const GIST_FILE = 'cockpit_data.json';
+let syncTimer = null;
+
+function setSyncStatus(s) {
+  const el = $('syncLbl');
+  if (!el) return;
+  if (s === 'none') { el.textContent = 'Spalten verschiebbar'; el.style.color = 'var(--t3)'; return; }
+  const labels = {syncing: '⟳ Sync …', synced: '✓ Synced', offline: '✗ Offline'};
+  el.textContent = labels[s] || '';
+  el.style.color = s === 'offline' ? 'var(--danger)' : s === 'synced' ? 'var(--accent)' : 'var(--t3)';
+}
+
+async function gistLoad() {
+  const pat = localStorage.getItem('dash_pat');
+  const gid = localStorage.getItem('dash_gist');
+  if (!pat || !gid) return false;
+  setSyncStatus('syncing');
+  try {
+    const r = await fetch(`https://api.github.com/gists/${gid}`, {
+      headers: {'Authorization': `token ${pat}`, 'Accept': 'application/vnd.github+json'}
+    });
+    if (!r.ok) { setSyncStatus('offline'); return false; }
+    const d = await r.json();
+    const content = d.files?.[GIST_FILE]?.content;
+    if (!content) { setSyncStatus('synced'); return false; }
+    const data = JSON.parse(content);
+    if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
+    if (Array.isArray(data.notes)) { notes = data.notes; localStorage.setItem('dash_notes', JSON.stringify(notes)); }
+    setSyncStatus('synced');
+    return true;
+  } catch { setSyncStatus('offline'); return false; }
+}
+
+async function gistSave() {
+  const pat = localStorage.getItem('dash_pat');
+  if (!pat) return;
+  let gid = localStorage.getItem('dash_gist');
+  setSyncStatus('syncing');
+  try {
+    const payload = JSON.stringify({todos, notes});
+    if (!gid) {
+      const r = await fetch('https://api.github.com/gists', {
+        method: 'POST',
+        headers: {'Authorization': `token ${pat}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'},
+        body: JSON.stringify({description: 'Cockpit Dashboard', public: false, files: {[GIST_FILE]: {content: payload}}})
+      });
+      if (!r.ok) throw new Error();
+      gid = (await r.json()).id;
+      localStorage.setItem('dash_gist', gid);
+    } else {
+      const r = await fetch(`https://api.github.com/gists/${gid}`, {
+        method: 'PATCH',
+        headers: {'Authorization': `token ${pat}`, 'Accept': 'application/vnd.github+json', 'Content-Type': 'application/json'},
+        body: JSON.stringify({files: {[GIST_FILE]: {content: payload}}})
+      });
+      if (!r.ok) throw new Error();
+    }
+    setSyncStatus('synced');
+  } catch { setSyncStatus('offline'); }
+}
+
+function scheduleSave() { clearTimeout(syncTimer); syncTimer = setTimeout(gistSave, 2000); }
+
 // ── Setup ─────────────────────────────────────────────────────────────────────
-function saveKey(){
-  const k=$('keyIn').value.trim(),err=$('setupErr');
-  if(!k.startsWith('sk-ant-')){err.textContent='Ungültig — muss mit sk-ant- beginnen.';err.style.display='block';return;}
-  localStorage.setItem('dash_key',k);
-  $('setup').style.display='none';$('app').style.display='flex';init();
+function saveKey() {
+  const k = $('keyIn').value.trim(), err = $('setupErr');
+  if (!k.startsWith('sk-ant-')) { err.textContent = 'Ungültig — muss mit sk-ant- beginnen.'; err.style.display = 'block'; return; }
+  localStorage.setItem('dash_key', k);
+  const pat = $('patIn').value.trim();
+  if (pat) localStorage.setItem('dash_pat', pat);
+  const gist = $('gistIn').value.trim();
+  if (gist) localStorage.setItem('dash_gist', gist);
+  const loc = $('locIn').value.trim();
+  if (loc) {
+    const parts = loc.split(',').map(s => parseFloat(s.trim()));
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      localStorage.setItem('dash_lat', parts[0]);
+      localStorage.setItem('dash_lon', parts[1]);
+    }
+  }
+  $('setup').style.display = 'none'; $('app').style.display = 'flex'; init();
 }
 
 // ── Clock ─────────────────────────────────────────────────────────────────────
-function tick(){
-  const n=new Date(),h=n.getHours();
-  $('greet').textContent=(h<5?'Gute Nacht':h<12?'Guten Morgen':h<17?'Guten Tag':'Guten Abend')+', Tim';
-  $('clock').textContent=n.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  $('dlbl').textContent=n.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
+function tick() {
+  const n = new Date(), h = n.getHours();
+  $('greet').textContent = (h<5?'Gute Nacht':h<12?'Guten Morgen':h<17?'Guten Tag':'Guten Abend')+', Tim';
+  $('clock').textContent = n.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  $('dlbl').textContent = n.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
 }
 
 // ── Weather ───────────────────────────────────────────────────────────────────
-const WX={0:'Sonnig',1:'Meist klar',2:'Teilbewölkt',3:'Bewölkt',51:'Niesel',61:'Regen',71:'Schnee',80:'Schauer',95:'Gewitter'};
-async function fetchWx(){
-  try{
-    const r=await fetch('https://api.open-meteo.com/v1/forecast?latitude=47.4245&longitude=9.3767&current=temperature_2m,weathercode&daily=temperature_2m_max&timezone=Europe%2FZurich&forecast_days=1');
-    const d=await r.json();
-    $('wTemp').textContent=Math.round(d.current.temperature_2m*10)/10+'°C';
-    const code=d.current.weathercode;
-    $('wCond').textContent=' '+(WX[code]||WX[Math.floor(code/10)*10]||'—')+' · max '+Math.round(d.daily.temperature_2m_max[0])+'°';
-  }catch{}
+const WX = {0:'Sonnig',1:'Meist klar',2:'Teilbewölkt',3:'Bewölkt',51:'Niesel',61:'Regen',71:'Schnee',80:'Schauer',95:'Gewitter'};
+async function fetchWx() {
+  try {
+    const lat = localStorage.getItem('dash_lat') || '47.4245';
+    const lon = localStorage.getItem('dash_lon') || '9.3767';
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max&timezone=Europe%2FZurich&forecast_days=1`);
+    const d = await r.json();
+    $('wTemp').textContent = Math.round(d.current.temperature_2m*10)/10+'°C';
+    const code = d.current.weathercode;
+    $('wCond').textContent = ' '+(WX[code]||WX[Math.floor(code/10)*10]||'—')+' · max '+Math.round(d.daily.temperature_2m_max[0])+'°';
+  } catch {}
 }
 
 // ── Deadline ──────────────────────────────────────────────────────────────────
-function renderDeadline(){
-  const now=new Date();
-  const nd=CAL_EVENTS.filter(e=>e.type==='deadline'&&new Date(e.start)>now).sort((a,b)=>new Date(a.start)-new Date(b.start))[0];
-  if(nd){
-    $('deadlineBar').style.display='flex';
-    const d=new Date(nd.start);
-    $('dText').innerHTML=`<span style="color:var(--t1)">${esc(nd.title)}</span> <span style="color:var(--t3)">— ${d.toLocaleDateString('de-CH',{day:'numeric',month:'long'})}</span>`;
+function renderDeadline() {
+  const now = new Date();
+  const nd = CAL_EVENTS.filter(e => e.type==='deadline' && new Date(e.start)>now).sort((a,b) => new Date(a.start)-new Date(b.start))[0];
+  if (nd) {
+    $('deadlineBar').style.display = 'flex';
+    const countdown = deadlineCountdown(nd.start);
+    const d = new Date(nd.start);
+    $('dText').innerHTML = `<span style="color:var(--t1)">${esc(nd.title)}</span> <span style="color:var(--t3)">— ${d.toLocaleDateString('de-CH',{day:'numeric',month:'long'})} <strong style="color:var(--danger)">${countdown}</strong></span>`;
+  } else {
+    $('deadlineBar').style.display = 'none';
   }
 }
 
 // ── Stopwatch ─────────────────────────────────────────────────────────────────
 let swRun=false,swEl=0,swT0=0,swIv=null;
-function swToggle(){
-  if(swRun){clearInterval(swIv);swRun=false;$('swBtn').textContent='Start';}
-  else{swT0=Date.now()-swEl;swRun=true;$('swBtn').textContent='Stop';
-    swIv=setInterval(()=>{swEl=Date.now()-swT0;const el=$('swTime');el.textContent=fmtSw(swEl);el.style.color=swEl>0?'var(--t1)':'var(--t3)';},33);}
+function swToggle() {
+  if (swRun) { clearInterval(swIv); swRun=false; $('swBtn').textContent='Start'; }
+  else { swT0=Date.now()-swEl; swRun=true; $('swBtn').textContent='Stop'; swIv=setInterval(()=>{swEl=Date.now()-swT0;const el=$('swTime');el.textContent=fmtSw(swEl);el.style.color=swEl>0?'var(--t1)':'var(--t3)';},33); }
 }
-function swReset(){clearInterval(swIv);swRun=false;swEl=0;$('swTime').textContent='00:00.00';$('swTime').style.color='var(--t3)';$('swBtn').textContent='Start';}
+function swReset() { clearInterval(swIv); swRun=false; swEl=0; $('swTime').textContent='00:00.00'; $('swTime').style.color='var(--t3)'; $('swBtn').textContent='Start'; }
 
 // ── Todo ──────────────────────────────────────────────────────────────────────
-let todos=JSON.parse(localStorage.getItem('dash_todos')||'[]');
-function saveTodos(){localStorage.setItem('dash_todos',JSON.stringify(todos));}
-function todoAdd(){const inp=$('tIn'),text=inp.value.trim();if(!text)return;todos.push({id:Date.now(),text,done:false,priority:$('tPrio').value});saveTodos();inp.value='';renderTodos();}
-function todoToggle(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;saveTodos();renderTodos();}
-function todoDel(id){todos=todos.filter(t=>t.id!==id);saveTodos();renderTodos();}
-function renderTodos(){
-  const pending=todos.filter(t=>!t.done),done=todos.filter(t=>t.done);
-  $('tCount').textContent=pending.length+' offen';
-  let h='';
-  if(!todos.length){h='<div class="noitem">Keine Aufgaben</div>';}
-  else{
-    pending.forEach(t=>{h+=`<div class="titem"><div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="todoToggle(${t.id})"></div><span style="flex:1;font-size:12px;color:var(--t1)">${esc(t.text)}</span><span class="tptag" style="color:${prioCol(t.priority)}">${t.priority}</span><button class="tdel" onclick="todoDel(${t.id})">×</button></div>`;});
-    if(done.length){
-      h+='<div class="secdone">Erledigt</div>';
-      done.forEach(t=>{h+=`<div class="titem"><div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="todoToggle(${t.id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div><span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span><button class="tdel" onclick="todoDel(${t.id})">×</button></div>`;});
-    }
-  }
-  $('tScr').innerHTML=h;
+let todos = (() => { try { return JSON.parse(localStorage.getItem('dash_todos')||'[]'); } catch { return []; } })();
+let dragTodoSrcIdx = null;
+
+function saveTodos() { localStorage.setItem('dash_todos', JSON.stringify(todos)); scheduleSave(); }
+function todoAdd() { const inp=$('tIn'),text=inp.value.trim(); if(!text)return; todos.push({id:Date.now(),text,done:false,priority:$('tPrio').value}); saveTodos(); inp.value=''; renderTodos(); }
+function todoToggle(id) { const t=todos.find(t=>t.id===id); if(t)t.done=!t.done; saveTodos(); renderTodos(); }
+function todoDel(id) { todos=todos.filter(t=>t.id!==id); saveTodos(); renderTodos(); }
+function clearDoneTodos() { todos=todos.filter(t=>!t.done); saveTodos(); renderTodos(); }
+
+function editTodo(id, el) {
+  const t = todos.find(t => t.id===id);
+  if (!t || t.done) return;
+  const inp = document.createElement('input');
+  inp.className = 'edit-in'; inp.value = t.text;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  function commit() { const v=inp.value.trim(); if(v){t.text=v;saveTodos();} renderTodos(); }
+  inp.onblur = commit;
+  inp.onkeydown = e => { if(e.key==='Enter')inp.blur(); if(e.key==='Escape')renderTodos(); };
 }
 
-// ── Notes (neu) ───────────────────────────────────────────────────────────────
-let notes=JSON.parse(localStorage.getItem('dash_notes')||'[]');
-let dragSrcIdx=null;
-function saveNotes(){localStorage.setItem('dash_notes',JSON.stringify(notes));}
-function noteAdd(){const inp=$('nIn'),text=inp.value.trim();if(!text)return;notes.push({id:Date.now(),text,prio:$('nPrio').value,done:false});saveNotes();inp.value='';renderNotes();}
-function noteToggle(id){const n=notes.find(n=>n.id===id);if(n)n.done=!n.done;saveNotes();renderNotes();}
-function noteDel(id){notes=notes.filter(n=>n.id!==id);saveNotes();renderNotes();}
-function noteDrop(toIdx,el){
+function todoDrop(toIdx, el) {
   el.classList.remove('dragover');
-  if(dragSrcIdx===null||dragSrcIdx===toIdx)return;
-  const pending=notes.filter(n=>!n.done);
-  const[moved]=pending.splice(dragSrcIdx,1);
-  pending.splice(toIdx,0,moved);
-  notes=[...pending,...notes.filter(n=>n.done)];
-  saveNotes();renderNotes();dragSrcIdx=null;
+  if (dragTodoSrcIdx===null || dragTodoSrcIdx===toIdx) return;
+  const pending = todos.filter(t=>!t.done);
+  const [moved] = pending.splice(dragTodoSrcIdx, 1);
+  pending.splice(toIdx, 0, moved);
+  todos = [...pending, ...todos.filter(t=>t.done)];
+  saveTodos(); renderTodos(); dragTodoSrcIdx = null;
 }
-function renderNotes(){
-  const pending=notes.filter(n=>!n.done),done=notes.filter(n=>n.done);
-  $('nCount').textContent=pending.length+' offen';
-  let h='';
-  if(!notes.length){h='<div class="noitem">Keine Notizen</div>';}
-  else{
-    pending.forEach((n,i)=>{
-      h+=`<div class="nitem" draggable="true"
+
+function renderTodos() {
+  const pending=todos.filter(t=>!t.done), done=todos.filter(t=>t.done);
+  $('tCount').textContent = pending.length+' offen';
+  let h = '';
+  if (!todos.length) { h='<div class="noitem">Keine Aufgaben</div>'; }
+  else {
+    pending.forEach((t,i) => {
+      h += `<div class="nitem" draggable="true"
+        ondragstart="dragTodoSrcIdx=${i}"
+        ondragenter="this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondragover="event.preventDefault()"
+        ondrop="todoDrop(${i},this)">
+        <span class="nhandle">⠿</span>
+        <div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="todoToggle(${t.id})"></div>
+        <span style="flex:1;font-size:12px;color:var(--t1)" ondblclick="editTodo(${t.id},this)">${esc(t.text)}</span>
+        <span class="tptag" style="color:${prioCol(t.priority)}">${t.priority}</span>
+        <button class="tdel" onclick="todoDel(${t.id})">×</button>
+      </div>`;
+    });
+    if (done.length) {
+      h += `<div class="secdonerow"><span class="secdone">Erledigt</span><button class="clrdone" onclick="clearDoneTodos()">Alle löschen</button></div>`;
+      done.forEach(t => {
+        h += `<div class="titem">
+          <div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="todoToggle(${t.id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
+          <span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span>
+          <button class="tdel" onclick="todoDel(${t.id})">×</button>
+        </div>`;
+      });
+    }
+  }
+  $('tScr').innerHTML = h;
+}
+
+// ── Notes ─────────────────────────────────────────────────────────────────────
+let notes = (() => { try { return JSON.parse(localStorage.getItem('dash_notes')||'[]'); } catch { return []; } })();
+let dragSrcIdx = null;
+
+function saveNotes() { localStorage.setItem('dash_notes', JSON.stringify(notes)); scheduleSave(); }
+function noteAdd() { const inp=$('nIn'),text=inp.value.trim(); if(!text)return; notes.push({id:Date.now(),text,prio:$('nPrio').value,done:false}); saveNotes(); inp.value=''; renderNotes(); }
+function noteToggle(id) { const n=notes.find(n=>n.id===id); if(n)n.done=!n.done; saveNotes(); renderNotes(); }
+function noteDel(id) { notes=notes.filter(n=>n.id!==id); saveNotes(); renderNotes(); }
+function clearDoneNotes() { notes=notes.filter(n=>!n.done); saveNotes(); renderNotes(); }
+
+function editNote(id, el) {
+  const n = notes.find(n => n.id===id);
+  if (!n || n.done) return;
+  const inp = document.createElement('input');
+  inp.className = 'edit-in'; inp.value = n.text;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  function commit() { const v=inp.value.trim(); if(v){n.text=v;saveNotes();} renderNotes(); }
+  inp.onblur = commit;
+  inp.onkeydown = e => { if(e.key==='Enter')inp.blur(); if(e.key==='Escape')renderNotes(); };
+}
+
+function noteDrop(toIdx, el) {
+  el.classList.remove('dragover');
+  if (dragSrcIdx===null || dragSrcIdx===toIdx) return;
+  const pending = notes.filter(n=>!n.done);
+  const [moved] = pending.splice(dragSrcIdx, 1);
+  pending.splice(toIdx, 0, moved);
+  notes = [...pending, ...notes.filter(n=>n.done)];
+  saveNotes(); renderNotes(); dragSrcIdx = null;
+}
+
+function renderNotes() {
+  const pending=notes.filter(n=>!n.done), done=notes.filter(n=>n.done);
+  $('nCount').textContent = pending.length+' offen';
+  let h = '';
+  if (!notes.length) { h='<div class="noitem">Keine Notizen</div>'; }
+  else {
+    pending.forEach((n,i) => {
+      h += `<div class="nitem" draggable="true"
         ondragstart="dragSrcIdx=${i}"
         ondragenter="this.classList.add('dragover')"
         ondragleave="this.classList.remove('dragover')"
@@ -394,15 +577,15 @@ function renderNotes(){
         <span class="nhandle">⠿</span>
         <div class="ndot" style="background:${prioCol(n.prio)}"></div>
         <div class="ncheck" style="border-color:${prioCol(n.prio)}" onclick="noteToggle(${n.id})"></div>
-        <span class="ntxt">${esc(n.text)}</span>
+        <span class="ntxt" ondblclick="editNote(${n.id},this)">${esc(n.text)}</span>
         <span class="nptag" style="color:${prioCol(n.prio)}">${n.prio}</span>
         <button class="tdel" onclick="noteDel(${n.id})">×</button>
       </div>`;
     });
-    if(done.length){
-      h+='<div class="secdone">Erledigt</div>';
-      done.forEach(n=>{
-        h+=`<div class="nitem" style="cursor:default">
+    if (done.length) {
+      h += `<div class="secdonerow"><span class="secdone">Erledigt</span><button class="clrdone" onclick="clearDoneNotes()">Alle löschen</button></div>`;
+      done.forEach(n => {
+        h += `<div class="nitem" style="cursor:default">
           <span class="nhandle" style="opacity:0">⠿</span>
           <div class="ndot" style="background:var(--t3)"></div>
           <div class="ncheck" style="border-color:var(--t3);background:var(--t3)" onclick="noteToggle(${n.id})">
@@ -414,84 +597,91 @@ function renderNotes(){
       });
     }
   }
-  $('nScr').innerHTML=h;
+  $('nScr').innerHTML = h;
 }
 
 // ── Voice ─────────────────────────────────────────────────────────────────────
-let vState='idle',recInst=null;
-const VOICE_SYS=`Du bist Tims Sprachassistent. Antworte auf Deutsch, max 2 kurze Sätze, kein Markdown.
+let vState='idle', recInst=null;
+
+function getVoiceSys() {
+  return `Du bist Tims Sprachassistent. Antworte auf Deutsch, max 2 kurze Sätze, kein Markdown.
 Datum: ${new Date().toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long',year:'numeric'})}.
 Termine: ${JSON.stringify(CAL_EVENTS)}.`;
+}
 
 const MIC=(c='#86868b')=>`<svg width="18" height="22" viewBox="0 0 18 22" fill="none"><rect x="5.5" y="1" width="7" height="12" rx="3.5" fill="${c}"/><path d="M2 11a7 7 0 0014 0" stroke="${c}" stroke-width="1.8" stroke-linecap="round" fill="none"/><line x1="9" y1="18" x2="9" y2="21" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/><line x1="5.5" y1="21" x2="12.5" y2="21" stroke="${c}" stroke-width="1.8" stroke-linecap="round"/></svg>`;
 const WAVE=`<svg width="20" height="14" viewBox="0 0 20 14" fill="none"><rect x="0" y="4" width="3" height="6" rx="1.5" fill="#0a84ff"/><rect x="5" y="2" width="3" height="10" rx="1.5" fill="#0a84ff"/><rect x="10" y="0" width="3" height="14" rx="1.5" fill="#0a84ff"/><rect x="15" y="3" width="3" height="8" rx="1.5" fill="#0a84ff"/></svg>`;
 const SPIN=`<span class="spin" style="width:16px;height:16px;display:block"></span>`;
 
-function vSet(state,status,bub,bubCls){
-  vState=state;
-  const btn=$('vBtn'),bs=$('vBubble'),vs=$('vStatus');
-  btn.className=state==='idle'?'':state;
-  vs.textContent=status||'Sprechen';
-  if(bub){bs.style.display='block';bs.className=bubCls||'';bs.textContent=bub;}
+function vSet(state, status, bub, bubCls) {
+  vState = state;
+  const btn=$('vBtn'), bs=$('vBubble'), vs=$('vStatus');
+  btn.className = state==='idle'?'':state;
+  vs.textContent = status||'Sprechen';
+  if (bub) { bs.style.display='block'; bs.className=bubCls||''; bs.textContent=bub; }
   else bs.style.display='none';
-  btn.innerHTML=state==='processing'?SPIN:state==='speaking'?WAVE:state==='listening'?MIC('#ff453a'):MIC();
+  btn.innerHTML = state==='processing'?SPIN:state==='speaking'?WAVE:state==='listening'?MIC('#ff453a'):MIC();
 }
 
-function voiceStop(){try{recInst?.abort();}catch{}try{speechSynthesis.cancel();}catch{}vSet('idle');}
+function voiceStop() { try{recInst?.abort();}catch{} try{speechSynthesis.cancel();}catch{} vSet('idle'); }
 
-async function voiceToggle(){
-  if(vState!=='idle'&&vState!=='error'){voiceStop();return;}
+async function voiceToggle() {
+  if (vState!=='idle'&&vState!=='error') { voiceStop(); return; }
   vSet('checking','Prüfe …','Mikrofon wird geprüft …','info');
-  try{const s=await navigator.mediaDevices.getUserMedia({audio:true});s.getTracks().forEach(t=>t.stop());}
-  catch(err){
-    const m=err.name==='NotAllowedError'?'Mikrofonzugriff verweigert.':err.name==='NotFoundError'?'Kein Mikrofon gefunden.':'Fehler: '+err.message;
-    vSet('error','Fehler',m,'err');setTimeout(()=>vSet('idle'),5000);return;
+  try { const s=await navigator.mediaDevices.getUserMedia({audio:true}); s.getTracks().forEach(t=>t.stop()); }
+  catch(err) {
+    const m = err.name==='NotAllowedError'?'Mikrofonzugriff verweigert.':err.name==='NotFoundError'?'Kein Mikrofon gefunden.':'Fehler: '+err.message;
+    vSet('error','Fehler',m,'err'); setTimeout(()=>vSet('idle'),5000); return;
   }
-  const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
-  if(!SR){vSet('error','Fehler','Spracherkennung nicht verfügbar.','err');setTimeout(()=>vSet('idle'),4000);return;}
-  const rec=new SR();rec.lang='de-DE';rec.continuous=false;rec.interimResults=false;rec.maxAlternatives=1;recInst=rec;
-  rec.onstart=()=>vSet('listening','Zuhören …','Sprich jetzt …','info');
-  rec.onspeechstart=()=>vSet('listening','Zuhören …','Sprache erkannt …','info');
-  rec.onresult=e=>{const txt=e.results[0][0].transcript;vSet('processing','Verarbeite …','„'+txt+'"','info');voiceProcess(txt);};
-  rec.onnomatch=()=>{vSet('error','Fehler','Nichts erkannt.','err');setTimeout(()=>vSet('idle'),2500);};
-  rec.onerror=e=>{if(e.error==='aborted'){vSet('idle');return;}const m={'not-allowed':'Mikrofon nicht erlaubt.','no-speech':'Keine Sprache erkannt.','network':'Netzwerkfehler.'}[e.error]||'Fehler: '+e.error;vSet('error','Fehler',m,'err');setTimeout(()=>vSet('idle'),3000);};
-  try{rec.start();}catch(e){vSet('error','Fehler','Start-Fehler.','err');setTimeout(()=>vSet('idle'),3000);}
+  const SR = window.SpeechRecognition||window.webkitSpeechRecognition;
+  if (!SR) { vSet('error','Fehler','Spracherkennung nicht verfügbar.','err'); setTimeout(()=>vSet('idle'),4000); return; }
+  const rec = new SR(); rec.lang='de-DE'; rec.continuous=false; rec.interimResults=false; rec.maxAlternatives=1; recInst=rec;
+  rec.onstart = () => vSet('listening','Zuhören …','Sprich jetzt …','info');
+  rec.onspeechstart = () => vSet('listening','Zuhören …','Sprache erkannt …','info');
+  rec.onresult = e => { const txt=e.results[0][0].transcript; vSet('processing','Verarbeite …','„'+txt+'"','info'); voiceProcess(txt); };
+  rec.onnomatch = () => { vSet('error','Fehler','Nichts erkannt.','err'); setTimeout(()=>vSet('idle'),2500); };
+  rec.onerror = e => { if(e.error==='aborted'){vSet('idle');return;} const m={'not-allowed':'Mikrofon nicht erlaubt.','no-speech':'Keine Sprache erkannt.','network':'Netzwerkfehler.'}[e.error]||'Fehler: '+e.error; vSet('error','Fehler',m,'err'); setTimeout(()=>vSet('idle'),3000); };
+  try { rec.start(); } catch(e) { vSet('error','Fehler','Start-Fehler.','err'); setTimeout(()=>vSet('idle'),3000); }
 }
 
-async function voiceProcess(txt){
-  try{
-    const reply=await ai(VOICE_SYS,[{role:'user',content:txt}],200);
+async function voiceProcess(txt) {
+  try {
+    const reply = await ai(getVoiceSys(), [{role:'user',content:txt}], 200);
     vSet('speaking','Spricht …',reply);
     speechSynthesis.cancel();
-    const utt=new SpeechSynthesisUtterance(reply);utt.lang='de-DE';utt.rate=1.0;
-    const vs=speechSynthesis.getVoices();
-    const v=vs.find(v=>v.lang.startsWith('de')&&v.name.includes('Google'))||vs.find(v=>v.lang.startsWith('de'));
-    if(v)utt.voice=v;
-    utt.onend=()=>vSet('idle');utt.onerror=()=>vSet('idle');
+    const utt = new SpeechSynthesisUtterance(reply); utt.lang='de-DE'; utt.rate=1.0;
+    const vs = speechSynthesis.getVoices();
+    const v = vs.find(v=>v.lang.startsWith('de')&&v.name.includes('Google'))||vs.find(v=>v.lang.startsWith('de'));
+    if (v) utt.voice=v;
+    utt.onend = ()=>vSet('idle'); utt.onerror = ()=>vSet('idle');
     speechSynthesis.speak(utt);
-  }catch(e){vSet('error','Fehler','API-Fehler: '+e.message,'err');setTimeout(()=>vSet('idle'),3000);}
+  } catch(e) { vSet('error','Fehler','API-Fehler: '+e.message,'err'); setTimeout(()=>vSet('idle'),3000); }
 }
 
 // ── Drag resize ───────────────────────────────────────────────────────────────
-let drag=null;const cw=[33,33,34];
-function applyCW(){['col0','col1','col2'].forEach((id,i)=>$(id).style.width=cw[i]+'%');}
-function initDrag(){
-  [0,1].forEach(i=>{
-    $('d'+i).addEventListener('mousedown',e=>{e.preventDefault();drag={i,x:e.clientX,w:[...cw]};document.addEventListener('mousemove',onDM);document.addEventListener('mouseup',onDU);});
+let drag=null; const cw=[33,33,34];
+function applyCW() { ['col0','col1','col2'].forEach((id,i)=>$(id).style.width=cw[i]+'%'); }
+function initDrag() {
+  [0,1].forEach(i => {
+    $('d'+i).addEventListener('mousedown', e => { e.preventDefault(); drag={i,x:e.clientX,w:[...cw]}; document.addEventListener('mousemove',onDM); document.addEventListener('mouseup',onDU); });
   });
 }
-function onDM(e){if(!drag)return;const{i,x,w}=drag,W=$('cols').offsetWidth,dx=((e.clientX-x)/W)*100;const a=Math.max(14,w[i]+dx),b=Math.max(14,w[i+1]-dx);if(a+b<=w[i]+w[i+1]+0.1){cw[i]=a;cw[i+1]=b;applyCW();}}
-function onDU(){drag=null;document.removeEventListener('mousemove',onDM);document.removeEventListener('mouseup',onDU);}
+function onDM(e) { if(!drag)return; const{i,x,w}=drag,W=$('cols').offsetWidth,dx=((e.clientX-x)/W)*100; const a=Math.max(14,w[i]+dx),b=Math.max(14,w[i+1]-dx); if(a+b<=w[i]+w[i+1]+0.1){cw[i]=a;cw[i+1]=b;applyCW();} }
+function onDU() { drag=null; document.removeEventListener('mousemove',onDM); document.removeEventListener('mouseup',onDU); }
 
 // ── Init ──────────────────────────────────────────────────────────────────────
-function init(){
-  tick();setInterval(tick,1000);
-  fetchWx();setInterval(fetchWx,10*60*1000);
-  renderDeadline();renderTodos();renderNotes();initDrag();
+async function init() {
+  tick(); setInterval(tick, 1000);
+  fetchWx(); setInterval(fetchWx, 10*60*1000);
+  await loadEvents();
+  await gistLoad();
+  renderDeadline(); setInterval(renderDeadline, 60000);
+  renderTodos(); renderNotes(); initDrag();
+  setSyncStatus(localStorage.getItem('dash_pat') ? 'synced' : 'none');
 }
 
-window.addEventListener('load',()=>{
-  if(localStorage.getItem('dash_key')){$('setup').style.display='none';$('app').style.display='flex';init();}
+window.addEventListener('load', () => {
+  if (localStorage.getItem('dash_key')) { $('setup').style.display='none'; $('app').style.display='flex'; init(); }
 });
 </script>
 </body>
