@@ -1,0 +1,636 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Cockpit — Tim</title>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  :root{
+    --bg:#000;--s1:#0d0d0d;--s2:#161616;--s3:#1f1f1f;
+    --b:rgba(255,255,255,0.07);--bm:rgba(255,255,255,0.13);
+    --t1:#f5f5f7;--t2:#86868b;--t3:#48484a;
+    --accent:#0a84ff;--danger:#ff453a;--exam:#ff9f0a;
+    --font:-apple-system,'Helvetica Neue',sans-serif;
+  }
+  html,body{height:100%;background:var(--bg);color:var(--t1);font-family:var(--font);overflow:hidden}
+  ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-thumb{background:var(--s3);border-radius:4px}
+  input::placeholder,textarea::placeholder{color:var(--t3)}
+  input:focus,select:focus,textarea:focus{outline:none;border-color:var(--bm)!important}
+  select option{background:var(--s2)}button:active{opacity:0.7}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* Setup */
+  #setup{position:fixed;inset:0;background:var(--bg);display:flex;align-items:center;justify-content:center;z-index:999;overflow-y:auto;padding:20px}
+  .sc{background:var(--s1);border:1px solid var(--b);border-radius:12px;padding:36px;width:440px;text-align:center}
+  .sc h2{font-size:17px;font-weight:500;margin-bottom:8px}
+  .sc p{font-size:12px;color:var(--t3);margin-bottom:16px;line-height:1.7}
+  .sc input{width:100%;background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:10px 12px;color:var(--t1);font-size:13px;font-family:var(--font);margin-bottom:8px}
+  .sc button{width:100%;background:var(--accent);border:none;color:#fff;border-radius:6px;padding:10px;font-size:13px;cursor:pointer;font-family:var(--font);margin-top:4px}
+  .sc-note{font-size:11px;color:var(--t3);margin-top:14px;line-height:1.6;text-align:left}
+  .sc-opt{font-size:10px;color:var(--t3);text-align:left;margin-bottom:6px;letter-spacing:0.06em;text-transform:uppercase}
+  .sc-divider{height:1px;background:var(--b);margin:16px 0 14px}
+
+  /* App */
+  #app{height:100vh;display:flex;flex-direction:column;padding:14px 16px 0}
+
+  /* Header */
+  .hrow1{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+  .hleft{display:flex;align-items:baseline;gap:14px}
+  #greet{font-size:16px;font-weight:500;letter-spacing:-0.01em}
+  #clock{font-size:18px;font-weight:300;letter-spacing:0.05em;font-variant-numeric:tabular-nums;color:var(--t2)}
+  #dlbl{font-size:11px;color:var(--t3)}
+  #wTemp{font-size:17px;font-weight:300}
+  #wCond{font-size:11px;color:var(--t3)}
+  .hrow2{display:flex;gap:8px;margin-bottom:8px}
+  #deadlineBar{flex:1;padding:7px 11px;background:var(--s1);border:1px solid rgba(255,69,58,0.18);border-radius:6px;display:none;align-items:center;gap:8px}
+  .ddot{width:4px;height:4px;border-radius:50%;background:var(--danger);flex-shrink:0}
+  .swbar{padding:7px 12px;background:var(--s1);border:1px solid var(--b);border-radius:6px;display:flex;align-items:center;gap:10px}
+  .swlbl{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3)}
+  #swTime{font-size:15px;font-weight:300;color:var(--t3);letter-spacing:0.05em;font-variant-numeric:tabular-nums;min-width:78px}
+  .bsm{background:transparent;border:1px solid var(--b);color:var(--t2);border-radius:4px;padding:3px 9px;cursor:pointer;font-size:12px;line-height:1.4;font-family:var(--font)}
+  .hdiv{height:1px;background:var(--b);margin-bottom:10px}
+
+  /* Columns */
+  #cols{display:flex;flex:1;min-height:0;overflow:hidden}
+  .col{overflow:hidden;display:flex;flex-direction:column;padding:0 14px;min-height:0}
+  .cdiv{width:6px;cursor:col-resize;display:flex;align-items:stretch;justify-content:center;flex-shrink:0}
+  .cdivl{width:1px;background:var(--b);transition:background 0.15s}
+  .cdiv:hover .cdivl{background:var(--bm)}
+  .sec{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3)}
+  .scr{flex:1;overflow-y:auto;min-height:0}
+
+  /* Calendar */
+  #calHead{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
+  #calLive{font-size:9px;color:var(--accent)}
+  #calFrame{flex:1;min-height:0;border-radius:6px;overflow:hidden;border:1px solid var(--b)}
+  #calFrame iframe{width:100%;height:100%;border:none;filter:invert(1) hue-rotate(180deg) saturate(0.8)}
+
+  /* Todo */
+  .tinrow{display:flex;gap:5px;margin-bottom:10px;flex-shrink:0}
+  .tin{flex:1;background:var(--s2);border:1px solid var(--b);border-radius:5px;padding:6px 9px;color:var(--t1);font-size:12px;font-family:var(--font)}
+  .tpsel{background:var(--s2);border:1px solid var(--b);border-radius:5px;color:var(--t2);font-size:11px;padding:0 5px;cursor:pointer;font-family:var(--font)}
+  .tadd{background:var(--s3);border:1px solid var(--bm);color:var(--t1);border-radius:5px;padding:6px 12px;cursor:pointer;font-size:15px;line-height:1}
+  .titem{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--b)}
+  .tcheck{width:14px;height:14px;border-radius:50%;cursor:pointer;flex-shrink:0;border:1.5px solid var(--b);background:transparent;display:flex;align-items:center;justify-content:center}
+  .tdone-txt{color:var(--t3)!important;text-decoration:line-through}
+  .tptag{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em}
+  .tdel{background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px;padding:0 2px;line-height:1}
+  .secdonerow{display:flex;justify-content:space-between;align-items:center;margin:8px 0 5px}
+  .secdone{font-size:9px;color:var(--t3);font-weight:500;letter-spacing:0.08em;text-transform:uppercase}
+  .clrdone{background:none;border:none;color:var(--t3);font-size:9px;cursor:pointer;padding:0;font-family:var(--font);text-decoration:underline;text-underline-offset:2px}
+  .clrdone:hover{color:var(--t2)}
+  .noitem{font-size:12px;color:var(--t3);text-align:center;padding-top:16px}
+  .edit-in{flex:1;background:var(--s3);border:1px solid var(--bm);border-radius:4px;padding:2px 6px;color:var(--t1);font-size:12px;font-family:var(--font)}
+  .nitem{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid var(--b);cursor:grab;user-select:none}
+  .nitem.dragover{border-top:2px solid var(--accent)}
+  .nhandle{color:var(--t3);font-size:13px;flex-shrink:0;cursor:grab}
+  .ncheck{width:14px;height:14px;border-radius:50%;cursor:pointer;flex-shrink:0;border:1.5px solid var(--b);background:transparent;display:flex;align-items:center;justify-content:center}
+  .ntxt{flex:1;font-size:12px;color:var(--t1);line-height:1.4}
+  .ntxt.done{color:var(--t3);text-decoration:line-through}
+  .nptag{font-size:8px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;flex-shrink:0}
+
+  /* Notepad */
+  #notepadWrap{flex:1;display:flex;flex-direction:column;min-height:0}
+  #notepad{
+    flex:1;width:100%;
+    background:var(--s2);border:1px solid var(--b);border-radius:6px;
+    padding:11px 13px;color:var(--t1);font-size:12.5px;
+    font-family:var(--font);resize:none;line-height:1.75;min-height:0;
+  }
+  #notepad:focus{border-color:var(--bm)}
+  #noteSaveInd{font-size:9px;color:var(--t3);text-align:right;margin-top:5px;flex-shrink:0;min-height:13px;transition:color 0.2s}
+
+  /* Bottom */
+  .botbar{display:flex;align-items:center;padding:8px 0 8px;flex-shrink:0;border-top:1px solid var(--b);margin-top:8px;gap:0}
+  .legend{flex:1;display:flex;gap:12px;align-items:center}
+  .lgitem{display:flex;align-items:center;gap:4px}
+  .lgline{width:8px;height:1.5px;border-radius:1px}
+  .lgtxt{font-size:9px;color:var(--t3)}
+  .rtlbl{flex:1;display:flex;justify-content:flex-end;align-items:center}
+  #syncLbl{font-size:9px;color:var(--t3);transition:color 0.3s;text-align:right;line-height:1.6}
+
+  /* Reminder button */
+  .remarea{display:flex;flex-direction:column;align-items:center;gap:3px}
+  #remBtn{
+    width:44px;height:44px;border-radius:50%;
+    background:transparent;border:1.5px solid var(--bm);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+    transition:border-color 0.2s,background 0.2s;
+  }
+  #remBtn:hover{border-color:var(--accent);background:rgba(10,132,255,0.08)}
+  #remLbl{font-size:9px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase}
+
+  /* Reminder Modal */
+  #remOverlay{
+    position:fixed;inset:0;background:rgba(0,0,0,0.65);
+    display:none;align-items:center;justify-content:center;z-index:600;
+  }
+  #remOverlay.open{display:flex}
+  #remModal{
+    background:var(--s1);border:1px solid var(--b);border-radius:14px;
+    padding:26px;width:330px;
+  }
+  #remModal h3{font-size:14px;font-weight:500;margin-bottom:18px;color:var(--t1)}
+  .rmlbl{font-size:10px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;margin-bottom:5px}
+  .rmin{
+    width:100%;background:var(--s2);border:1px solid var(--b);
+    border-radius:6px;padding:9px 12px;color:var(--t1);
+    font-size:13px;font-family:var(--font);margin-bottom:14px;
+    color-scheme:dark;
+  }
+  .rmin:focus{border-color:var(--bm)}
+  #remSend{
+    width:100%;background:var(--accent);border:none;color:#fff;
+    border-radius:6px;padding:10px;font-size:13px;cursor:pointer;
+    font-family:var(--font);
+  }
+  #remSend:disabled{opacity:0.5;cursor:default}
+  #remCancel{
+    width:100%;background:transparent;border:none;color:var(--t3);
+    padding:8px;font-size:12px;cursor:pointer;font-family:var(--font);
+    margin-top:6px;
+  }
+  #remStatus{font-size:11px;min-height:18px;text-align:center;margin-top:8px;line-height:1.5}
+</style>
+</head>
+<body>
+
+<!-- SETUP -->
+<div id="setup">
+  <div class="sc">
+    <h2>Cockpit einrichten</h2>
+    <p>Alle Felder optional — jederzeit ergänzbar.</p>
+
+    <div class="sc-opt">Sync (GitHub Gist)</div>
+    <input type="password" id="patIn" placeholder="ghp_… GitHub PAT">
+    <input type="text" id="gistIn" placeholder="Gist-ID (falls vorhanden)">
+
+    <div class="sc-divider"></div>
+    <div class="sc-opt">Reminder → iPhone</div>
+    <input type="text" id="pushcutIn" placeholder="https://api.pushcut.io/…/notifications/…">
+
+    <div class="sc-divider"></div>
+    <div class="sc-opt">Standort (Wetter)</div>
+    <input type="text" id="locIn" placeholder="47.4245,9.3767  lat,lon">
+
+    <button onclick="saveSetup()">Starten</button>
+
+    <p class="sc-note">
+      <strong style="color:var(--t1)">Pushcut Setup:</strong><br>
+      1. Pushcut auf iPhone installieren<br>
+      2. Notification erstellen (z.B. «Cockpit»)<br>
+      3. Shortcut zuweisen: «Neuer Reminder» mit Eingabe-Parameter<br>
+      4. Pushcut → Settings → API Key → URL hierher kopieren
+    </p>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+  <!-- Header row 1 -->
+  <div class="hrow1">
+    <div class="hleft">
+      <span id="greet"></span>
+      <span id="clock"></span>
+      <span id="dlbl"></span>
+    </div>
+    <div>
+      <span id="wTemp">—°C</span>
+      <span id="wCond"></span>
+    </div>
+  </div>
+
+  <!-- Header row 2 -->
+  <div class="hrow2">
+    <div id="deadlineBar"><div class="ddot"></div><span id="dText"></span></div>
+    <div class="swbar">
+      <span class="swlbl">Stoppuhr</span>
+      <span id="swTime">00:00.00</span>
+      <button class="bsm" id="swBtn" onclick="swToggle()">Start</button>
+      <button class="bsm" onclick="swReset()">Reset</button>
+    </div>
+  </div>
+
+  <div class="hdiv"></div>
+
+  <!-- Columns -->
+  <div id="cols">
+
+    <!-- Calendar -->
+    <div id="col0" class="col" style="width:33%;display:flex;flex-direction:column">
+      <div id="calHead">
+        <span class="sec">Kalender</span>
+        <span id="calLive">Live · Google Calendar</span>
+      </div>
+      <div id="calFrame">
+        <iframe
+          src="https://calendar.google.com/calendar/embed?src=tim.b.landolt%40gmail.com&ctz=Europe%2FZurich&showTitle=0&showNav=1&showDate=1&showPrint=0&showTabs=0&showCalendars=0&showTz=0&mode=WEEK&bgcolor=%23ffffff"
+          frameborder="0" scrolling="no">
+        </iframe>
+      </div>
+    </div>
+    <div class="cdiv" id="d0"><div class="cdivl"></div></div>
+
+    <!-- Tasks -->
+    <div id="col1" class="col" style="width:33%">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0">
+        <span class="sec">Aufgaben</span>
+        <span id="tCount" style="font-size:9px;color:var(--t3)">0 offen</span>
+      </div>
+      <div class="tinrow">
+        <input type="text" id="tIn" class="tin" placeholder="Neue Aufgabe" onkeydown="if(event.key==='Enter')todoAdd()">
+        <select id="tPrio" class="tpsel">
+          <option value="hoch">Hoch</option>
+          <option value="mittel" selected>Mittel</option>
+          <option value="tief">Tief</option>
+        </select>
+        <button class="tadd" onclick="todoAdd()">+</button>
+      </div>
+      <div id="tScr" class="scr"></div>
+    </div>
+    <div class="cdiv" id="d1"><div class="cdivl"></div></div>
+
+    <!-- Notepad -->
+    <div id="col2" class="col" style="width:34%">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;flex-shrink:0">
+        <span class="sec">Notizblock</span>
+        <span id="noteSaveInd"></span>
+      </div>
+      <div id="notepadWrap">
+        <textarea id="notepad" placeholder="Freie Notizen …" oninput="notepadChange()"></textarea>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="botbar">
+    <div class="legend">
+      <div class="lgitem"><div class="lgline" style="background:#0a84ff"></div><span class="lgtxt">Vorlesung</span></div>
+      <div class="lgitem"><div class="lgline" style="background:#ff9f0a"></div><span class="lgtxt">Prüfung</span></div>
+      <div class="lgitem"><div class="lgline" style="background:#ff453a"></div><span class="lgtxt">Deadline</span></div>
+    </div>
+    <div class="remarea">
+      <button id="remBtn" onclick="openReminder()" title="Reminder an iPhone senden">
+        <svg width="17" height="21" viewBox="0 0 17 21" fill="none">
+          <path d="M8.5 1.5a1 1 0 011 1v.4A5.5 5.5 0 0114 8.5v3.8l1.5 2.2H1.5L3 12.3V8.5A5.5 5.5 0 017.5 2.9v-.4a1 1 0 011-1z" stroke="#86868b" stroke-width="1.5" fill="none" stroke-linejoin="round"/>
+          <path d="M6.5 15.5a2 2 0 004 0" stroke="#86868b" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <span id="remLbl">Reminder</span>
+    </div>
+    <div class="rtlbl"><span id="syncLbl"></span></div>
+  </div>
+
+</div>
+
+<!-- Reminder Modal -->
+<div id="remOverlay" onclick="if(event.target===this)closeReminder()">
+  <div id="remModal">
+    <h3>Reminder erstellen</h3>
+    <div class="rmlbl">Was</div>
+    <input type="text" id="remTitle" class="rmin" placeholder="Woran soll ich dich erinnern?"
+      onkeydown="if(event.key==='Enter')sendReminder();if(event.key==='Escape')closeReminder()">
+    <div class="rmlbl">Wann (optional)</div>
+    <input type="datetime-local" id="remDate" class="rmin">
+    <button id="remSend" onclick="sendReminder()">An iPhone senden</button>
+    <button id="remCancel" onclick="closeReminder()">Abbrechen</button>
+    <div id="remStatus"></div>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+const FALLBACK_EVENTS = [
+  {title:'Abgabe HA8 – Physik 2',               start:'2026-04-26T23:59:00', type:'deadline'},
+  {title:'Physik 2 Praktikum',                  start:'2026-04-27T08:50:00', end:'2026-04-27T11:30:00', location:'TP 207', type:'class'},
+  {title:'DTWS – Case Studies',                 start:'2026-04-27T12:00:00', end:'2026-04-27T13:35:00', location:'TS O1.13', type:'class'},
+  {title:'Physik 2 – Vorlesung',                start:'2026-04-27T14:00:00', end:'2026-04-27T15:35:00', location:'TE 214', type:'class'},
+  {title:'STOP – Statistisches Modellieren',    start:'2026-04-28T08:00:00', end:'2026-04-28T10:45:00', location:'TS O3.12', type:'class'},
+  {title:'STMO – Statistisches Modellieren',    start:'2026-04-28T13:00:00', end:'2026-04-28T16:35:00', location:'TS O1.23', type:'class'},
+  {title:'Numerik – Vorlesung + Praktikum',     start:'2026-05-02T08:00:00', end:'2026-05-02T11:35:00', location:'TE 216', type:'class'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-02T12:00:00', end:'2026-05-02T13:35:00', location:'TP 207', type:'class'},
+  {title:'Abgabe Tut3 – Physik 2',              start:'2026-05-03T23:59:00', type:'deadline'},
+  {title:'Zwischenprüfung 2 – Physik 2',        start:'2026-05-04T08:00:00', end:'2026-05-04T09:00:00', type:'exam'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-04T08:50:00', end:'2026-05-04T11:30:00', location:'TP 207', type:'class'},
+  {title:'DTWS – Case Studies',                 start:'2026-05-04T12:00:00', end:'2026-05-04T13:35:00', location:'TS O1.13', type:'class'},
+  {title:'Physik 2 – Vorlesung',                start:'2026-05-04T14:00:00', end:'2026-05-04T15:35:00', location:'TE 214', type:'class'},
+  {title:'STOP – Statistisches Modellieren',    start:'2026-05-05T08:00:00', end:'2026-05-05T10:45:00', location:'TS O3.12', type:'class'},
+  {title:'STMO – Statistisches Modellieren',    start:'2026-05-05T13:00:00', end:'2026-05-05T16:35:00', location:'TS O1.23', type:'class'},
+  {title:'Kurztest 4 – Numerik ODE',            start:'2026-05-09T08:00:00', end:'2026-05-09T09:00:00', type:'exam'},
+  {title:'Numerik – Vorlesung + Praktikum',     start:'2026-05-09T08:00:00', end:'2026-05-09T11:35:00', location:'TE 216', type:'class'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-09T12:00:00', end:'2026-05-09T13:35:00', location:'TP 207', type:'class'},
+  {title:'Tut3 Abgabe – Räuber Beute (STMO)',   start:'2026-05-10T23:00:00', end:'2026-05-10T23:59:00', type:'deadline'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-11T08:50:00', end:'2026-05-11T11:30:00', location:'TP 207', type:'class'},
+  {title:'DTWS – Case Studies',                 start:'2026-05-11T12:00:00', end:'2026-05-11T13:35:00', location:'TS O1.13', type:'class'},
+  {title:'Physik 2 – Vorlesung',                start:'2026-05-11T14:00:00', end:'2026-05-11T15:35:00', location:'TE 214', type:'class'},
+  {title:'STOP – Statistisches Modellieren',    start:'2026-05-12T08:00:00', end:'2026-05-12T10:45:00', location:'TS O3.12', type:'class'},
+  {title:'STMO – Statistisches Modellieren',    start:'2026-05-12T13:00:00', end:'2026-05-12T16:35:00', location:'TS O1.23', type:'class'},
+  {title:'ABGABE: Poster & Handout – Moodle',   start:'2026-05-12T23:00:00', end:'2026-05-13T00:00:00', type:'deadline'},
+  {title:'Numerik – Vorlesung + Praktikum',     start:'2026-05-16T08:00:00', end:'2026-05-16T11:35:00', location:'TE 216', type:'class'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-16T12:00:00', end:'2026-05-16T13:35:00', location:'TP 207', type:'class'},
+  {title:'Abgabe Tut4 – Physik 2',              start:'2026-05-17T23:59:00', type:'deadline'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-18T08:50:00', end:'2026-05-18T11:30:00', location:'TP 207', type:'class'},
+  {title:'DTWS – Case Studies',                 start:'2026-05-18T12:00:00', end:'2026-05-18T13:35:00', location:'TS O1.13', type:'class'},
+  {title:'Präsentation Poster – Stock & Flow',  start:'2026-05-18T17:00:00', end:'2026-05-18T18:00:00', location:'TS O1.13', type:'exam'},
+  {title:'Physik 2 – Vorlesung',                start:'2026-05-18T14:00:00', end:'2026-05-18T15:35:00', location:'TE 214', type:'class'},
+  {title:'STOP – Statistisches Modellieren',    start:'2026-05-19T08:00:00', end:'2026-05-19T10:45:00', location:'TS O3.12', type:'class'},
+  {title:'STMO – Statistisches Modellieren',    start:'2026-05-19T13:00:00', end:'2026-05-19T16:35:00', location:'TS O1.23', type:'class'},
+  {title:'Numerik – Vorlesung + Praktikum',     start:'2026-05-23T08:00:00', end:'2026-05-23T11:35:00', location:'TE 216', type:'class'},
+  {title:'Physik 2 Praktikum',                  start:'2026-05-23T12:00:00', end:'2026-05-23T13:35:00', location:'TP 207', type:'class'},
+  {title:'ABGABE: Arbeitsjournal & Schlussreflexion', start:'2026-05-24T23:59:00', type:'deadline'},
+  {title:'Abgabe Tut5 – Physik 2',              start:'2026-05-24T23:59:00', type:'deadline'},
+  {title:'Prüfungswochen ZHAW',                 start:'2026-06-08', end:'2026-06-17', allDay:true, type:'exam'},
+];
+
+let CAL_EVENTS = [];
+
+async function loadEvents() {
+  try { const r = await fetch('./events.json'); if (r.ok) { CAL_EVENTS = await r.json(); return; } } catch {}
+  CAL_EVENTS = FALLBACK_EVENTS;
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────────
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+function fmtSw(ms){const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),cs=Math.floor(ms%1000/10);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;}
+function prioCol(p){return p==='hoch'?'#ff453a':p==='mittel'?'#0a84ff':'#48484a';}
+function deadlineCountdown(dateStr){const ms=new Date(dateStr)-new Date();if(ms<=0)return null;const h=Math.floor(ms/3600000),d=Math.floor(ms/86400000);if(h<1)return'bald';if(h<24)return`in ${h} Std`;if(d===1)return'morgen';return`in ${d} Tagen`;}
+
+// ── Gist sync ──────────────────────────────────────────────────────────────────
+const GIST_FILE = 'cockpit_data.json';
+let syncTimer = null;
+
+function setSyncStatus(s) {
+  const el = $('syncLbl'); if (!el) return;
+  if (s === 'none') { el.textContent = 'Spalten verschiebbar'; el.style.color = 'var(--t3)'; return; }
+  const labels = {syncing:'⟳ Sync …', synced:'✓ Synced', offline:'✗ Offline'};
+  el.textContent = labels[s] || '';
+  el.style.color = s==='offline'?'var(--danger)':s==='synced'?'var(--accent)':'var(--t3)';
+}
+
+async function gistLoad() {
+  const pat = localStorage.getItem('dash_pat'), gid = localStorage.getItem('dash_gist');
+  if (!pat || !gid) return false;
+  setSyncStatus('syncing');
+  try {
+    const r = await fetch(`https://api.github.com/gists/${gid}`, {headers:{'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json'}});
+    if (!r.ok) { setSyncStatus('offline'); return false; }
+    const d = await r.json();
+    const content = d.files?.[GIST_FILE]?.content;
+    if (!content) { setSyncStatus('synced'); return false; }
+    const data = JSON.parse(content);
+    if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
+    if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
+    setSyncStatus('synced'); return true;
+  } catch { setSyncStatus('offline'); return false; }
+}
+
+async function gistSave() {
+  const pat = localStorage.getItem('dash_pat'); if (!pat) return;
+  let gid = localStorage.getItem('dash_gist');
+  setSyncStatus('syncing');
+  try {
+    const payload = JSON.stringify({todos, notepad: localStorage.getItem('dash_notepad')||''});
+    if (!gid) {
+      const r = await fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({description:'Cockpit Dashboard',public:false,files:{[GIST_FILE]:{content:payload}}})});
+      if (!r.ok) throw new Error();
+      gid = (await r.json()).id; localStorage.setItem('dash_gist', gid);
+    } else {
+      const r = await fetch(`https://api.github.com/gists/${gid}`,{method:'PATCH',headers:{'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILE]:{content:payload}}})});
+      if (!r.ok) throw new Error();
+    }
+    setSyncStatus('synced');
+  } catch { setSyncStatus('offline'); }
+}
+
+function scheduleSave() { clearTimeout(syncTimer); syncTimer = setTimeout(gistSave, 2000); }
+
+// ── Setup ──────────────────────────────────────────────────────────────────────
+function saveSetup() {
+  const pat = $('patIn').value.trim(); if (pat) localStorage.setItem('dash_pat', pat);
+  const gist = $('gistIn').value.trim(); if (gist) localStorage.setItem('dash_gist', gist);
+  const pc = $('pushcutIn').value.trim(); if (pc) localStorage.setItem('dash_pushcut', pc);
+  const loc = $('locIn').value.trim();
+  if (loc) { const parts = loc.split(',').map(s=>parseFloat(s.trim())); if(parts.length===2&&!isNaN(parts[0])&&!isNaN(parts[1])){localStorage.setItem('dash_lat',parts[0]);localStorage.setItem('dash_lon',parts[1]);} }
+  localStorage.setItem('dash_setup_done','1');
+  $('setup').style.display = 'none'; $('app').style.display = 'flex'; init();
+}
+
+// ── Clock ──────────────────────────────────────────────────────────────────────
+function tick() {
+  const n = new Date(), h = n.getHours();
+  $('greet').textContent = (h<5?'Gute Nacht':h<12?'Guten Morgen':h<17?'Guten Tag':'Guten Abend')+', Tim';
+  $('clock').textContent = n.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  $('dlbl').textContent = n.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
+}
+
+// ── Weather ────────────────────────────────────────────────────────────────────
+const WX = {0:'Sonnig',1:'Meist klar',2:'Teilbewölkt',3:'Bewölkt',51:'Niesel',61:'Regen',71:'Schnee',80:'Schauer',95:'Gewitter'};
+async function fetchWx() {
+  try {
+    const lat = localStorage.getItem('dash_lat')||'47.4245', lon = localStorage.getItem('dash_lon')||'9.3767';
+    const r = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weathercode&daily=temperature_2m_max&timezone=Europe%2FZurich&forecast_days=1`);
+    const d = await r.json();
+    $('wTemp').textContent = Math.round(d.current.temperature_2m*10)/10+'°C';
+    const code = d.current.weathercode;
+    $('wCond').textContent = ' '+(WX[code]||WX[Math.floor(code/10)*10]||'—')+' · max '+Math.round(d.daily.temperature_2m_max[0])+'°';
+  } catch {}
+}
+
+// ── Deadline ───────────────────────────────────────────────────────────────────
+function renderDeadline() {
+  const now = new Date();
+  const nd = CAL_EVENTS.filter(e=>e.type==='deadline'&&new Date(e.start)>now).sort((a,b)=>new Date(a.start)-new Date(b.start))[0];
+  if (nd) {
+    $('deadlineBar').style.display = 'flex';
+    const countdown = deadlineCountdown(nd.start), d = new Date(nd.start);
+    $('dText').innerHTML = `<span style="color:var(--t1)">${esc(nd.title)}</span> <span style="color:var(--t3)">— ${d.toLocaleDateString('de-CH',{day:'numeric',month:'long'})} <strong style="color:var(--danger)">${countdown}</strong></span>`;
+  } else { $('deadlineBar').style.display = 'none'; }
+}
+
+// ── Stopwatch ──────────────────────────────────────────────────────────────────
+let swRun=false,swEl=0,swT0=0,swIv=null;
+function swToggle(){if(swRun){clearInterval(swIv);swRun=false;$('swBtn').textContent='Start';}else{swT0=Date.now()-swEl;swRun=true;$('swBtn').textContent='Stop';swIv=setInterval(()=>{swEl=Date.now()-swT0;const el=$('swTime');el.textContent=fmtSw(swEl);el.style.color=swEl>0?'var(--t1)':'var(--t3)';},33);}}
+function swReset(){clearInterval(swIv);swRun=false;swEl=0;$('swTime').textContent='00:00.00';$('swTime').style.color='var(--t3)';$('swBtn').textContent='Start';}
+
+// ── Todo ───────────────────────────────────────────────────────────────────────
+let todos = (()=>{try{return JSON.parse(localStorage.getItem('dash_todos')||'[]');}catch{return[];}})();
+let dragTodoSrcIdx = null;
+
+function saveTodos(){localStorage.setItem('dash_todos',JSON.stringify(todos));scheduleSave();}
+function todoAdd(){const inp=$('tIn'),text=inp.value.trim();if(!text)return;todos.push({id:Date.now(),text,done:false,priority:$('tPrio').value});saveTodos();inp.value='';renderTodos();}
+function todoToggle(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;saveTodos();renderTodos();}
+function todoDel(id){todos=todos.filter(t=>t.id!==id);saveTodos();renderTodos();}
+function clearDoneTodos(){todos=todos.filter(t=>!t.done);saveTodos();renderTodos();}
+
+function editTodo(id,el){
+  const t=todos.find(t=>t.id===id);if(!t||t.done)return;
+  const inp=document.createElement('input');inp.className='edit-in';inp.value=t.text;
+  el.replaceWith(inp);inp.focus();inp.select();
+  function commit(){const v=inp.value.trim();if(v){t.text=v;saveTodos();}renderTodos();}
+  inp.onblur=commit;inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderTodos();};
+}
+
+function todoDrop(toIdx,el){
+  el.classList.remove('dragover');
+  if(dragTodoSrcIdx===null||dragTodoSrcIdx===toIdx)return;
+  const pending=todos.filter(t=>!t.done);
+  const[moved]=pending.splice(dragTodoSrcIdx,1);pending.splice(toIdx,0,moved);
+  todos=[...pending,...todos.filter(t=>t.done)];saveTodos();renderTodos();dragTodoSrcIdx=null;
+}
+
+function renderTodos(){
+  const pending=todos.filter(t=>!t.done),done=todos.filter(t=>t.done);
+  $('tCount').textContent=pending.length+' offen';
+  let h='';
+  if(!todos.length){h='<div class="noitem">Keine Aufgaben</div>';}
+  else{
+    pending.forEach((t,i)=>{
+      h+=`<div class="nitem" draggable="true"
+        ondragstart="dragTodoSrcIdx=${i}"
+        ondragenter="this.classList.add('dragover')"
+        ondragleave="this.classList.remove('dragover')"
+        ondragover="event.preventDefault()"
+        ondrop="todoDrop(${i},this)">
+        <span class="nhandle">⠿</span>
+        <div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="todoToggle(${t.id})"></div>
+        <span style="flex:1;font-size:12px;color:var(--t1)" ondblclick="editTodo(${t.id},this)">${esc(t.text)}</span>
+        <span class="tptag" style="color:${prioCol(t.priority)}">${t.priority}</span>
+        <button class="tdel" onclick="todoDel(${t.id})">×</button>
+      </div>`;
+    });
+    if(done.length){
+      h+=`<div class="secdonerow"><span class="secdone">Erledigt</span><button class="clrdone" onclick="clearDoneTodos()">Alle löschen</button></div>`;
+      done.forEach(t=>{
+        h+=`<div class="titem">
+          <div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="todoToggle(${t.id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
+          <span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span>
+          <button class="tdel" onclick="todoDel(${t.id})">×</button>
+        </div>`;
+      });
+    }
+  }
+  $('tScr').innerHTML=h;
+}
+
+// ── Notepad ────────────────────────────────────────────────────────────────────
+let notepadTimer = null;
+
+function notepadChange() {
+  localStorage.setItem('dash_notepad', $('notepad').value);
+  const ind = $('noteSaveInd');
+  ind.textContent = 'Ungespeichert'; ind.style.color = 'var(--t3)';
+  clearTimeout(notepadTimer);
+  notepadTimer = setTimeout(() => {
+    ind.textContent = '✓ Gespeichert'; ind.style.color = 'var(--accent)';
+    scheduleSave();
+    setTimeout(() => { ind.textContent = ''; }, 2000);
+  }, 1000);
+}
+
+function loadNotepad() {
+  $('notepad').value = localStorage.getItem('dash_notepad') || '';
+}
+
+// ── Reminder Modal ─────────────────────────────────────────────────────────────
+function openReminder() {
+  const now = new Date(Date.now() + 3600000);
+  const local = new Date(now - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+  $('remTitle').value = '';
+  $('remDate').value = local;
+  $('remStatus').textContent = '';
+  $('remSend').disabled = false;
+  $('remOverlay').classList.add('open');
+  setTimeout(() => $('remTitle').focus(), 60);
+}
+
+function closeReminder() {
+  $('remOverlay').classList.remove('open');
+}
+
+async function sendReminder() {
+  const title = $('remTitle').value.trim();
+  if (!title) {
+    $('remStatus').textContent = 'Bitte Titel eingeben.';
+    $('remStatus').style.color = 'var(--danger)';
+    return;
+  }
+  const url = localStorage.getItem('dash_pushcut');
+  if (!url) {
+    $('remStatus').textContent = 'Kein Pushcut-URL konfiguriert. Seite neu laden → Setup.';
+    $('remStatus').style.color = 'var(--danger)';
+    return;
+  }
+  const dt = $('remDate').value;
+  let inputText = title;
+  if (dt) {
+    const d = new Date(dt);
+    const dateStr = d.toLocaleDateString('de-CH',{day:'numeric',month:'long',year:'numeric'});
+    const timeStr = d.toLocaleTimeString('de-CH',{hour:'2-digit',minute:'2-digit'});
+    inputText = `${dateStr} ${timeStr} · ${title}`;
+  }
+  $('remStatus').textContent = 'Sende …';
+  $('remStatus').style.color = 'var(--t3)';
+  $('remSend').disabled = true;
+  try {
+    const r = await fetch(url, {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({title: 'Reminder', text: title, input: inputText})
+    });
+    if (r.ok) {
+      $('remStatus').textContent = '✓ An iPhone gesendet';
+      $('remStatus').style.color = 'var(--accent)';
+      setTimeout(closeReminder, 1400);
+    } else {
+      $('remStatus').textContent = `Fehler ${r.status} — prüfe Pushcut-URL.`;
+      $('remStatus').style.color = 'var(--danger)';
+      $('remSend').disabled = false;
+    }
+  } catch {
+    $('remStatus').textContent = 'Netzwerkfehler — prüfe die URL.';
+    $('remStatus').style.color = 'var(--danger)';
+    $('remSend').disabled = false;
+  }
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape' && $('remOverlay').classList.contains('open')) closeReminder();
+});
+
+// ── Drag resize ────────────────────────────────────────────────────────────────
+let drag=null; const cw=[33,33,34];
+function applyCW(){['col0','col1','col2'].forEach((id,i)=>$(id).style.width=cw[i]+'%');}
+function initDrag(){
+  [0,1].forEach(i=>{
+    $('d'+i).addEventListener('mousedown',e=>{e.preventDefault();drag={i,x:e.clientX,w:[...cw]};document.addEventListener('mousemove',onDM);document.addEventListener('mouseup',onDU);});
+  });
+}
+function onDM(e){if(!drag)return;const{i,x,w}=drag,W=$('cols').offsetWidth,dx=((e.clientX-x)/W)*100;const a=Math.max(14,w[i]+dx),b=Math.max(14,w[i+1]-dx);if(a+b<=w[i]+w[i+1]+0.1){cw[i]=a;cw[i+1]=b;applyCW();}}
+function onDU(){drag=null;document.removeEventListener('mousemove',onDM);document.removeEventListener('mouseup',onDU);}
+
+// ── Init ───────────────────────────────────────────────────────────────────────
+async function init() {
+  tick(); setInterval(tick, 1000);
+  fetchWx(); setInterval(fetchWx, 10*60*1000);
+  await loadEvents();
+  await gistLoad();
+  renderDeadline(); setInterval(renderDeadline, 60000);
+  renderTodos();
+  loadNotepad();
+  initDrag();
+  setSyncStatus(localStorage.getItem('dash_pat') ? 'synced' : 'none');
+}
+
+window.addEventListener('load', () => {
+  if (localStorage.getItem('dash_setup_done')) {
+    $('setup').style.display = 'none'; $('app').style.display = 'flex'; init();
+  }
+});
+</script>
+</body>
+</html>
