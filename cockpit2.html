@@ -153,9 +153,9 @@
     <h2>Cockpit einrichten</h2>
     <p>Alle Felder optional — jederzeit ergänzbar.</p>
 
-    <div class="sc-opt">Sync (GitHub Gist)</div>
+    <div class="sc-opt">Sync (GitHub-Repo)</div>
     <input type="password" id="patIn" placeholder="ghp_… GitHub PAT">
-    <input type="text" id="gistIn" placeholder="Gist-ID (falls vorhanden)">
+    <input type="text" id="repoIn" placeholder="Daten-Repo: timbenjaminlandolt/cockpit-data">
 
     <div class="sc-divider"></div>
     <div class="sc-opt">Standort (Wetter)</div>
@@ -290,8 +290,8 @@
     <input type="text" id="stLoc" class="stmin" placeholder="47.4245,9.3767">
     <div class="stmlbl">GitHub PAT (Sync)</div>
     <input type="password" id="stPat" class="stmin" placeholder="ghp_…">
-    <div class="stmlbl">Gist-ID</div>
-    <input type="text" id="stGist" class="stmin" placeholder="Gist-ID">
+    <div class="stmlbl">Daten-Repo (owner/name)</div>
+    <input type="text" id="stRepo" class="stmin" placeholder="timbenjaminlandolt/cockpit-data">
     <button id="stSave" onclick="saveSettings()">Speichern</button>
     <button id="stCancel" onclick="closeSettings()">Abbrechen</button>
   </div>
@@ -357,59 +357,126 @@ function fmtSw(ms){const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),cs=M
 function prioCol(p){return p==='hoch'?'#ff453a':p==='mittel'?'#0a84ff':'#48484a';}
 function deadlineCountdown(dateStr){const ms=new Date(dateStr)-new Date();if(ms<=0)return null;const h=Math.floor(ms/3600000),d=Math.floor(ms/86400000);if(h<1)return'bald';if(h<24)return`in ${h} Std`;if(d===1)return'morgen';return`in ${d} Tagen`;}
 
-// ── Gist sync ──────────────────────────────────────────────────────────────────
+// ── Sync (GitHub-Repo, Fallback Gist) ──────────────────────────────────────────
+const DATA_FILE = 'data.json';
 const GIST_FILE = 'cockpit_data.json';
-let syncTimer = null;
+const DEFAULT_REPO = 'timbenjaminlandolt/cockpit-data';
+let syncTimer = null, repoSha = null, savePending = false;
 
 function setSyncStatus(s) {
   const el = $('syncLbl'); if (!el) return;
   if (s === 'none') { el.textContent = 'Spalten verschiebbar'; el.style.color = 'var(--t3)'; return; }
-  const labels = {syncing:'⟳ Sync …', synced:'✓ Synced', offline:'✗ Offline'};
+  const labels = {syncing:'⟳ Sync …', synced:'✓ Synced', gist:'✓ Synced (Gist)', offline:'✗ Offline'};
   el.textContent = labels[s] || '';
-  el.style.color = s==='offline'?'var(--danger)':s==='synced'?'var(--accent)':'var(--t3)';
+  el.style.color = s==='offline'?'var(--danger)':(s==='synced'||s==='gist')?'var(--accent)':'var(--t3)';
+}
+
+const ghHeaders = pat => ({'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json'});
+const dataRepo = () => localStorage.getItem('dash_repo') || DEFAULT_REPO;
+const repoUrl = () => `https://api.github.com/repos/${dataRepo()}/contents/${DATA_FILE}`;
+const b64enc = s => { let o=''; new TextEncoder().encode(s).forEach(c => o += String.fromCharCode(c)); return btoa(o); };
+const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
+const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||''});
+
+function applyData(data) {
+  if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
+  if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
+}
+
+// Liest data.json aus dem Repo. Rückgabe: {state:'ok',data} | {state:'missing'} | {state:'error'}
+async function repoRead(pat) {
+  try {
+    const r = await fetch(repoUrl(), {headers: ghHeaders(pat), cache: 'no-store'});
+    if (r.status === 404 || r.status === 401 || r.status === 403) return {state:'missing'};
+    if (!r.ok) return {state:'error'};
+    const d = await r.json();
+    repoSha = d.sha;
+    return {state:'ok', data: JSON.parse(b64dec(d.content || '') || '{}')};
+  } catch { return {state:'error'}; }
+}
+
+async function repoWrite(pat) {
+  const body = {message: 'Cockpit sync', content: b64enc(JSON.stringify(curPayload(), null, 2))};
+  if (repoSha) body.sha = repoSha;
+  const r = await fetch(repoUrl(), {method:'PUT', headers:{...ghHeaders(pat),'Content-Type':'application/json'}, body: JSON.stringify(body)});
+  if (r.ok) repoSha = (await r.json()).content.sha;
+  return r.status;
 }
 
 async function gistLoad() {
   const pat = localStorage.getItem('dash_pat'), gid = localStorage.getItem('dash_gist');
   if (!pat || !gid) return false;
-  setSyncStatus('syncing');
   try {
-    const r = await fetch(`https://api.github.com/gists/${gid}`, {headers:{'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json'}});
-    if (!r.ok) { setSyncStatus('offline'); return false; }
-    const d = await r.json();
-    const content = d.files?.[GIST_FILE]?.content;
-    if (!content) { setSyncStatus('synced'); return false; }
-    const data = JSON.parse(content);
-    if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
-    if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
-    setSyncStatus('synced'); return true;
-  } catch { setSyncStatus('offline'); return false; }
+    const r = await fetch(`https://api.github.com/gists/${gid}`, {headers: ghHeaders(pat)});
+    if (!r.ok) return false;
+    const content = (await r.json()).files?.[GIST_FILE]?.content;
+    if (!content) return false;
+    applyData(JSON.parse(content));
+    return true;
+  } catch { return false; }
 }
 
 async function gistSave() {
-  const pat = localStorage.getItem('dash_pat'); if (!pat) return;
-  let gid = localStorage.getItem('dash_gist');
-  setSyncStatus('syncing');
+  const pat = localStorage.getItem('dash_pat'), gid = localStorage.getItem('dash_gist');
+  if (!pat || !gid) return false;
   try {
-    const payload = JSON.stringify({todos, notepad: localStorage.getItem('dash_notepad')||''});
-    if (!gid) {
-      const r = await fetch('https://api.github.com/gists',{method:'POST',headers:{'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({description:'Cockpit Dashboard',public:false,files:{[GIST_FILE]:{content:payload}}})});
-      if (!r.ok) throw new Error();
-      gid = (await r.json()).id; localStorage.setItem('dash_gist', gid);
-    } else {
-      const r = await fetch(`https://api.github.com/gists/${gid}`,{method:'PATCH',headers:{'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json','Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILE]:{content:payload}}})});
-      if (!r.ok) throw new Error();
-    }
-    setSyncStatus('synced');
-  } catch { setSyncStatus('offline'); }
+    const r = await fetch(`https://api.github.com/gists/${gid}`,{method:'PATCH',headers:{...ghHeaders(pat),'Content-Type':'application/json'},body:JSON.stringify({files:{[GIST_FILE]:{content:JSON.stringify(curPayload())}}})});
+    return r.ok;
+  } catch { return false; }
 }
 
-function scheduleSave() { clearTimeout(syncTimer); syncTimer = setTimeout(gistSave, 2000); }
+async function dataLoad() {
+  const pat = localStorage.getItem('dash_pat');
+  if (!pat) return false;
+  setSyncStatus('syncing');
+  const res = await repoRead(pat);
+  if (res.state === 'ok') { applyData(res.data); setSyncStatus('synced'); return true; }
+  if (res.state === 'error') { setSyncStatus('offline'); return false; }
+  // Repo-Datei fehlt noch (oder PAT ohne Repo-Recht): alten Gist laden und ins Repo übernehmen
+  await gistLoad();
+  scheduleSave();
+  return true;
+}
+
+async function dataSave() {
+  const pat = localStorage.getItem('dash_pat');
+  if (!pat) { savePending = false; return; }
+  setSyncStatus('syncing');
+  try {
+    let st = await repoWrite(pat);
+    if (st === 409 || st === 422) {
+      // Datei wurde inzwischen anderswo geändert: dort neu angelegte Aufgaben übernehmen, dann erneut speichern
+      const res = await repoRead(pat);
+      if (res.state === 'ok' && Array.isArray(res.data.todos)) {
+        const ids = new Set(todos.map(t => t.id));
+        const added = res.data.todos.filter(t => !ids.has(t.id));
+        if (added.length) { todos = [...todos, ...added]; localStorage.setItem('dash_todos', JSON.stringify(todos)); renderTodos(); }
+      }
+      st = await repoWrite(pat);
+    }
+    if (st === 200 || st === 201) setSyncStatus('synced');
+    else if (await gistSave()) setSyncStatus('gist');
+    else setSyncStatus('offline');
+  } catch { setSyncStatus('offline'); }
+  savePending = false;
+}
+
+function scheduleSave() { savePending = true; clearTimeout(syncTimer); syncTimer = setTimeout(dataSave, 2000); }
+
+// Beim Zurückkehren zum Tab neu laden, damit extern eingetragene Aufgaben erscheinen
+document.addEventListener('visibilitychange', async () => {
+  if (document.hidden || savePending || !repoSha) return;
+  const pat = localStorage.getItem('dash_pat'); if (!pat) return;
+  const res = await repoRead(pat);
+  if (res.state !== 'ok' || savePending) return;
+  applyData(res.data); renderTodos();
+  if (document.activeElement !== $('notepad')) loadNotepad();
+});
 
 // ── Setup ──────────────────────────────────────────────────────────────────────
 function saveSetup() {
   const pat = $('patIn').value.trim(); if (pat) localStorage.setItem('dash_pat', pat);
-  const gist = $('gistIn').value.trim(); if (gist) localStorage.setItem('dash_gist', gist);
+  const repo = $('repoIn').value.trim(); if (repo) localStorage.setItem('dash_repo', repo);
   const loc = $('locIn').value.trim();
   if (loc) { const parts = loc.split(',').map(s=>parseFloat(s.trim())); if(parts.length===2&&!isNaN(parts[0])&&!isNaN(parts[1])){localStorage.setItem('dash_lat',parts[0]);localStorage.setItem('dash_lon',parts[1]);} }
   const sl = $('semLabelIn').value.trim(); if (sl) localStorage.setItem('dash_sem_label', sl);
@@ -547,7 +614,7 @@ function openSettings() {
   $('stSemStart').value = localStorage.getItem('dash_sem_start') || '2026-02-16';
   $('stSemEnd').value   = localStorage.getItem('dash_sem_end')   || '2026-06-07';
   $('stPat').value = localStorage.getItem('dash_pat') || '';
-  $('stGist').value = localStorage.getItem('dash_gist') || '';
+  $('stRepo').value = dataRepo();
   const lat = localStorage.getItem('dash_lat'), lon = localStorage.getItem('dash_lon');
   $('stLoc').value = (lat && lon) ? `${lat},${lon}` : '';
   $('settingsOverlay').classList.add('open');
@@ -561,12 +628,13 @@ function saveSettings() {
   const ss = $('stSemStart').value; if (ss) localStorage.setItem('dash_sem_start', ss);
   const se = $('stSemEnd').value; if (se) localStorage.setItem('dash_sem_end', se);
   const pat = $('stPat').value.trim(); if (pat) localStorage.setItem('dash_pat', pat);
-  const gist = $('stGist').value.trim(); if (gist) localStorage.setItem('dash_gist', gist);
+  const repo = $('stRepo').value.trim(); if (repo && repo !== dataRepo()) { localStorage.setItem('dash_repo', repo); repoSha = null; }
   const loc = $('stLoc').value.trim();
   if (loc) { const p = loc.split(',').map(s=>parseFloat(s.trim())); if(p.length===2&&!isNaN(p[0])&&!isNaN(p[1])){localStorage.setItem('dash_lat',p[0]);localStorage.setItem('dash_lon',p[1]);} }
   closeSettings();
   fetchWx();
   renderSemBar();
+  dataLoad().then(() => { renderTodos(); loadNotepad(); });
 }
 
 // ── Semester bar ──────────────────────────────────────────────────────────────
@@ -628,14 +696,14 @@ async function init() {
   tick(); setInterval(tick, 1000);
   fetchWx(); setInterval(fetchWx, 10*60*1000);
   await loadEvents();
-  await gistLoad();
+  await dataLoad();
   renderDeadline(); setInterval(renderDeadline, 60000);
   renderTodos();
   loadNotepad();
   renderSemBar();
   renderQL();
   initDrag();
-  setSyncStatus(localStorage.getItem('dash_pat') ? 'synced' : 'none');
+  if (!localStorage.getItem('dash_pat')) setSyncStatus('none');
 }
 
 window.addEventListener('load', () => {
