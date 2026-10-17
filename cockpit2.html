@@ -143,8 +143,54 @@
   #stSave{width:100%;background:var(--accent);border:none;color:#fff;border-radius:6px;padding:10px;font-size:13px;cursor:pointer;font-family:var(--font)}
   #stCancel{width:100%;background:transparent;border:none;color:var(--t3);padding:8px;font-size:12px;cursor:pointer;font-family:var(--font);margin-top:6px}
 
+  /* Module row (Kacheln oben) */
+  .mrow{display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-shrink:0;flex-wrap:wrap}
+  .mlbl{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3);margin-right:4px}
+  .m-chip{display:inline-flex;align-items:center;gap:6px;background:var(--s1);border:1px solid var(--b);border-radius:6px;padding:5px 11px;color:var(--t2);font-size:12px;text-decoration:none;cursor:pointer;transition:border-color 0.15s,color 0.15s,background 0.15s;user-select:none}
+  .m-chip:hover{border-color:var(--bm);color:var(--t1)}
+  .m-chip.active{background:var(--s3);border-color:var(--bm);color:var(--t1)}
+  .m-chip.dragover{border-color:var(--accent)}
+  .m-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+  .m-cnt{font-size:9px;color:var(--t3);font-variant-numeric:tabular-nums}
+  .m-home{color:var(--t3)}
+
+  /* Module page */
+  #modView{display:none;flex:1;min-height:0;flex-direction:column}
+  body.inmod #modView{display:flex}
+  body.inmod #qlRow,body.inmod #cols{display:none}
+  .mhead{display:flex;align-items:center;gap:10px;margin-bottom:12px;flex-shrink:0;flex-wrap:wrap}
+  .mback{color:var(--t3);text-decoration:none;font-size:12px;padding:3px 0}
+  .mback:hover{color:var(--t1)}
+  .mcrumb{color:var(--t3);font-size:12px}
+  .m-dot.big{width:11px;height:11px;cursor:pointer}
+  .mtitle{font-size:20px;font-weight:500;letter-spacing:-0.01em;cursor:text}
+  .mtitle-in{font-size:18px;font-weight:500;background:var(--s2);border:1px solid var(--bm);border-radius:6px;padding:3px 8px;color:var(--t1);font-family:var(--font);min-width:220px}
+  .mhead-sp{flex:1}
+  .mdel:hover{color:var(--danger);border-color:rgba(255,69,58,0.4)}
+  .mcols{display:flex;flex:1;min-height:0;overflow:hidden}
+  .mcol{width:33.33%}
+  .mcol+.mcol{border-left:1px solid var(--b)}
+  .msub{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-shrink:0}
+  .mlinks{display:flex;flex-direction:column;gap:5px;margin-bottom:18px}
+  .mlinks .ql-a{justify-content:space-between;padding:7px 10px;font-size:12px}
+  .mform{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+  .mform .ql-in{flex:1;min-width:0}
+  .ditem{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--b);font-size:12px}
+  .ditem.past{opacity:0.4}
+  .dtitle{flex:1;color:var(--t1)}
+  .ddate{color:var(--t3);font-size:11px;white-space:nowrap}
+  .dcount{font-size:11px;font-weight:500;white-space:nowrap;min-width:62px;text-align:right}
+  #mNotes{flex:1;width:100%;background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:11px 13px;color:var(--t1);font-size:12.5px;font-family:var(--font);resize:none;line-height:1.75;min-height:0}
+  .mempty{font-size:12px;color:var(--t3);padding:6px 0 10px}
+
   /* Phone layout — only applies below 760px, desktop unchanged */
   @media (max-width:760px){
+    .mcols{flex-direction:column;overflow:visible}
+    .mcol{width:100%!important;padding:0;overflow:visible;margin-bottom:22px}
+    .mcol+.mcol{border-left:none}
+    #mNotes{min-height:260px;font-size:16px}
+    .m-chip{font-size:14px;padding:7px 12px}
+    .mtitle-in,.mform .ql-in{font-size:16px}
     html,body{height:auto;overflow:auto}
     #app{height:auto;min-height:100vh;padding:12px 16px 0;padding-top:max(12px,env(safe-area-inset-top))}
     .hrow1{flex-wrap:wrap;gap:6px 12px}
@@ -238,6 +284,9 @@
 
   <div class="hdiv"></div>
 
+  <!-- Module (editierbare Kacheln, jede öffnet eine eigene Seite) -->
+  <div class="mrow" id="mRow"></div>
+
   <!-- Quick Links -->
   <div class="qlrow" id="qlRow"></div>
 
@@ -290,6 +339,9 @@
     </div>
 
   </div>
+
+  <!-- Modul-Seite (wird per #/m/<id> angezeigt) -->
+  <div id="modView"></div>
 
   <!-- Bottom Bar -->
   <div class="botbar">
@@ -406,11 +458,12 @@ const dataRepo = () => localStorage.getItem('dash_repo') || DEFAULT_REPO;
 const repoUrl = () => `https://api.github.com/repos/${dataRepo()}/contents/${DATA_FILE}`;
 const b64enc = s => { let o=''; new TextEncoder().encode(s).forEach(c => o += String.fromCharCode(c)); return btoa(o); };
 const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
-const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||''});
+const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules});
 
 function applyData(data) {
   if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
   if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
+  if (Array.isArray(data.modules)) { modules = data.modules.map(normMod); localStorage.setItem('dash_modules', JSON.stringify(modules)); }
 }
 
 // Liest data.json aus dem Repo. Rückgabe: {state:'ok',data} | {state:'missing'} | {state:'error'}
@@ -482,6 +535,11 @@ async function dataSave() {
         const added = res.data.todos.filter(t => !ids.has(t.id));
         if (added.length) { todos = [...todos, ...added]; localStorage.setItem('dash_todos', JSON.stringify(todos)); renderTodos(); }
       }
+      if (res.state === 'ok' && Array.isArray(res.data.modules)) {
+        const mids = new Set(modules.map(m => m.id));
+        const addedM = res.data.modules.filter(m => !mids.has(m.id)).map(normMod);
+        if (addedM.length) { modules = [...modules, ...addedM]; localStorage.setItem('dash_modules', JSON.stringify(modules)); renderModRow(); }
+      }
       st = await repoWrite(pat);
     }
     if (st === 200 || st === 201) setSyncStatus('synced');
@@ -501,6 +559,7 @@ document.addEventListener('visibilitychange', async () => {
   if (res.state !== 'ok' || savePending) return;
   applyData(res.data); renderTodos();
   if (document.activeElement !== $('notepad')) loadNotepad();
+  refreshModules();
 });
 
 // ── Setup ──────────────────────────────────────────────────────────────────────
@@ -664,7 +723,7 @@ function saveSettings() {
   closeSettings();
   fetchWx();
   renderSemBar();
-  dataLoad().then(() => { renderTodos(); loadNotepad(); });
+  dataLoad().then(() => { renderTodos(); loadNotepad(); refreshModules(); });
 }
 
 // ── Semester bar ──────────────────────────────────────────────────────────────
@@ -710,6 +769,264 @@ function qlConfirm() {
   saveQL(); qlAdding = false; renderQL();
 }
 
+// ── Module ─────────────────────────────────────────────────────────────────────
+// Jedes Modul: {id, name, color, links:[{label,url}], todos:[{id,text,done,priority}], dates:[{id,title,date,type}], notes}
+const MCOLORS = ['#0a84ff','#30d158','#ff9f0a','#bf5af2','#ff375f','#64d2ff','#ffd60a','#ac8e68'];
+const DTYPES = {exam:{lbl:'Prüfung',col:'#ff9f0a'}, deadline:{lbl:'Abgabe',col:'#ff453a'}, event:{lbl:'Termin',col:'#0a84ff'}};
+function normMod(m) {
+  return {id:String(m.id), name:String(m.name||'Modul'), color:m.color||MCOLORS[0],
+    links:Array.isArray(m.links)?m.links:[], todos:Array.isArray(m.todos)?m.todos:[],
+    dates:Array.isArray(m.dates)?m.dates:[], notes:typeof m.notes==='string'?m.notes:''};
+}
+let modules = (()=>{try{return JSON.parse(localStorage.getItem('dash_modules')||'[]').map(normMod);}catch{return[];}})();
+let curMod = null, mAdding = false, dragModSrc = null, dragMTodoSrc = null;
+let mLinkAdding = false, mDateAdding = false, mNoteTimer = null;
+
+const modById = id => modules.find(m => m.id === id);
+const cur = () => modById(curMod);
+function saveModules() { localStorage.setItem('dash_modules', JSON.stringify(modules)); scheduleSave(); }
+function newId() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 5); }
+
+// Kachelleiste oben
+function renderModRow() {
+  let h = '<span class="mlbl">Module</span>';
+  if (curMod) h += `<a class="m-chip m-home" href="#/">‹ Übersicht</a>`;
+  modules.forEach((m, i) => {
+    const open = m.todos.filter(t => !t.done).length;
+    h += `<a class="m-chip${curMod===m.id?' active':''}" href="#/m/${m.id}" draggable="true"
+      ondragstart="dragModSrc=${i}"
+      ondragenter="this.classList.add('dragover')"
+      ondragleave="this.classList.remove('dragover')"
+      ondragover="event.preventDefault()"
+      ondrop="event.preventDefault();modDrop(${i})"
+      title="Klicken zum Öffnen · ziehen zum Sortieren">
+      <span class="m-dot" style="background:${m.color}"></span>${esc(m.name)}${open?`<span class="m-cnt">${open}</span>`:''}</a>`;
+  });
+  if (mAdding) {
+    h += `<div class="ql-form"><input id="mNewIn" class="ql-in" placeholder="Modulname, z.B. Factory Physics" style="width:220px" onkeydown="if(event.key==='Enter')modAdd();if(event.key==='Escape'){mAdding=false;renderModRow();}"><button class="ql-ok" onclick="modAdd()">OK</button><button class="ql-cancel" onclick="mAdding=false;renderModRow()">✕</button></div>`;
+  } else {
+    h += `<button class="ql-addbtn" onclick="mAdding=true;renderModRow();setTimeout(()=>{const el=$('mNewIn');if(el)el.focus();},30)">+ Modul</button>`;
+  }
+  $('mRow').innerHTML = h;
+}
+
+function modAdd() {
+  const name = ($('mNewIn').value || '').trim(); if (!name) return;
+  modules.push(normMod({id:newId(), name, color:MCOLORS[modules.length % MCOLORS.length]}));
+  saveModules(); mAdding = false; renderModRow();
+}
+
+function modDrop(to) {
+  if (dragModSrc === null || dragModSrc === to) { dragModSrc = null; renderModRow(); return; }
+  const [m] = modules.splice(dragModSrc, 1); modules.splice(to, 0, m);
+  dragModSrc = null; saveModules(); renderModRow();
+}
+
+// Routing: #/m/<id> = Modulseite, alles andere = Startseite
+function route() {
+  const hit = location.hash.match(/^#\/m\/([\w-]+)/);
+  const m = hit && modById(hit[1]);
+  if (hit && !m) history.replaceState(null, '', location.pathname + location.search);
+  const changed = curMod !== (m ? m.id : null);
+  curMod = m ? m.id : null;
+  document.body.classList.toggle('inmod', !!curMod);
+  if (changed) { mLinkAdding = false; mDateAdding = false; }
+  renderModRow();
+  if (curMod) renderModView();
+  if (changed) window.scrollTo(0, 0);
+}
+window.addEventListener('hashchange', route);
+
+function refreshModules() {
+  if (curMod && !cur()) { location.hash = '#/'; return; }
+  renderModRow();
+  if (curMod) { renderMLinks(); renderMDates(); renderMTodos(); if (document.activeElement !== $('mNotes')) $('mNotes').value = cur().notes; }
+}
+
+// Modulseite
+function renderModView() {
+  const m = cur(); if (!m) return;
+  $('modView').innerHTML = `
+    <div class="mhead">
+      <span class="m-dot big" style="background:${m.color}" onclick="modCycleColor()" title="Farbe wechseln"></span>
+      <span class="mtitle" id="mTitle" ondblclick="modRename()" title="Doppelklick zum Umbenennen">${esc(m.name)}</span>
+      <span class="mhead-sp"></span>
+      <button class="bsm" onclick="modRename()">Umbenennen</button>
+      <button class="bsm mdel" onclick="modDelete()">Löschen</button>
+    </div>
+    <div class="mcols">
+      <div class="col mcol">
+        <div class="scr">
+          <div class="msub"><span class="sec">Links</span></div>
+          <div class="mlinks" id="mLinks"></div>
+          <div class="msub"><span class="sec">Prüfungen & Termine</span></div>
+          <div id="mDates"></div>
+        </div>
+      </div>
+      <div class="col mcol">
+        <div class="msub"><span class="sec">Aufgaben</span><span id="mtCount" style="font-size:9px;color:var(--t3)"></span></div>
+        <div class="tinrow">
+          <input type="text" id="mtIn" class="tin" placeholder="Neue Aufgabe für ${esc(m.name)}" onkeydown="if(event.key==='Enter')mtAdd()">
+          <select id="mtPrio" class="tpsel"><option value="hoch">Hoch</option><option value="mittel" selected>Mittel</option><option value="tief">Tief</option></select>
+          <button class="tadd" onclick="mtAdd()">+</button>
+        </div>
+        <div id="mtScr" class="scr"></div>
+      </div>
+      <div class="col mcol">
+        <div class="msub"><span class="sec">Notizen</span><span id="mNoteInd" style="font-size:9px;color:var(--t3)"></span></div>
+        <textarea id="mNotes" placeholder="Notizen zu ${esc(m.name)} …" oninput="mNotesChange()"></textarea>
+      </div>
+    </div>`;
+  $('mNotes').value = m.notes;
+  renderMLinks(); renderMDates(); renderMTodos();
+}
+
+function modRename() {
+  const m = cur(), el = $('mTitle'); if (!m || !el) return;
+  const inp = document.createElement('input'); inp.className = 'mtitle-in'; inp.value = m.name;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  let done = false;
+  const commit = save => { if (done) return; done = true; const v = inp.value.trim(); if (save && v && v !== m.name) { m.name = v; saveModules(); } renderModView(); renderModRow(); };
+  inp.onblur = () => commit(true);
+  inp.onkeydown = e => { if (e.key === 'Enter') commit(true); if (e.key === 'Escape') commit(false); };
+}
+
+function modCycleColor() {
+  const m = cur(); if (!m) return;
+  m.color = MCOLORS[(MCOLORS.indexOf(m.color) + 1) % MCOLORS.length];
+  saveModules(); renderModView(); renderModRow();
+}
+
+function modDelete() {
+  const m = cur(); if (!m) return;
+  if (!confirm(`Modul „${m.name}“ mit allen Aufgaben, Notizen, Links und Terminen löschen?`)) return;
+  modules = modules.filter(x => x.id !== m.id); saveModules();
+  location.hash = '#/';
+}
+
+// Links pro Modul
+function renderMLinks() {
+  const m = cur(); if (!m) return;
+  let h = m.links.length ? '' : '<div class="mempty">Noch keine Links (z.B. Moodle, Skript, Teams)</div>';
+  m.links.forEach((l, i) => {
+    h += `<a class="ql-a" href="${esc(l.url)}" target="_blank" rel="noopener"><span>${esc(l.label)}</span><button class="ql-x" onclick="event.preventDefault();mLinkDel(${i})">×</button></a>`;
+  });
+  if (mLinkAdding) {
+    h += `<div class="mform"><input id="mlLbl" class="ql-in" placeholder="Label"><input id="mlUrl" class="ql-in" placeholder="https://…" onkeydown="if(event.key==='Enter')mLinkAdd();if(event.key==='Escape'){mLinkAdding=false;renderMLinks();}"><button class="ql-ok" onclick="mLinkAdd()">OK</button><button class="ql-cancel" onclick="mLinkAdding=false;renderMLinks()">✕</button></div>`;
+  } else {
+    h += `<button class="ql-addbtn" onclick="mLinkAdding=true;renderMLinks();setTimeout(()=>{const el=$('mlLbl');if(el)el.focus();},30)">+ Link</button>`;
+  }
+  $('mLinks').innerHTML = h;
+}
+function mLinkAdd() {
+  const m = cur(); const label = ($('mlLbl').value||'').trim(), url = ($('mlUrl').value||'').trim();
+  if (!m || !label || !url) return;
+  m.links.push({label, url: /^https?:\/\//i.test(url) ? url : 'https://' + url});
+  mLinkAdding = false; saveModules(); renderMLinks();
+}
+function mLinkDel(i) { const m = cur(); if (!m) return; m.links.splice(i, 1); saveModules(); renderMLinks(); }
+
+// Prüfungen & Termine pro Modul
+function dayDiff(ds) { const d = new Date(ds + 'T00:00:00'), t = new Date(); t.setHours(0,0,0,0); return Math.round((d - t) / 86400000); }
+function dayLbl(n) { return n < 0 ? 'vorbei' : n === 0 ? 'heute' : n === 1 ? 'morgen' : `in ${n} Tagen`; }
+function renderMDates() {
+  const m = cur(); if (!m) return;
+  const sorted = [...m.dates].sort((a, b) => a.date.localeCompare(b.date));
+  const up = sorted.filter(d => dayDiff(d.date) >= 0), past = sorted.filter(d => dayDiff(d.date) < 0);
+  let h = sorted.length ? '' : '<div class="mempty">Keine Termine eingetragen</div>';
+  [...up, ...past].forEach(d => {
+    const n = dayDiff(d.date), ty = DTYPES[d.type] || DTYPES.event;
+    const dt = new Date(d.date + 'T00:00:00').toLocaleDateString('de-CH', {weekday:'short', day:'numeric', month:'short'});
+    h += `<div class="ditem${n<0?' past':''}">
+      <span class="m-dot" style="background:${ty.col}" title="${ty.lbl}"></span>
+      <span class="dtitle">${esc(d.title)}</span>
+      <span class="ddate">${dt}</span>
+      <span class="dcount" style="color:${n>=0&&n<=7?'var(--danger)':'var(--t3)'}">${dayLbl(n)}</span>
+      <button class="tdel" onclick="mDateDel('${d.id}')">×</button>
+    </div>`;
+  });
+  if (mDateAdding) {
+    h += `<div class="mform"><input id="mdTitle" class="ql-in" placeholder="z.B. Zwischenprüfung" style="flex-basis:100%" onkeydown="if(event.key==='Enter')mDateAdd();if(event.key==='Escape'){mDateAdding=false;renderMDates();}">
+      <input id="mdDate" type="date" class="ql-in" style="color-scheme:dark">
+      <select id="mdType" class="tpsel"><option value="exam">Prüfung</option><option value="deadline">Abgabe</option><option value="event">Termin</option></select>
+      <button class="ql-ok" onclick="mDateAdd()">OK</button><button class="ql-cancel" onclick="mDateAdding=false;renderMDates()">✕</button></div>`;
+  } else {
+    h += `<button class="ql-addbtn" style="margin-top:8px" onclick="mDateAdding=true;renderMDates();setTimeout(()=>{const el=$('mdTitle');if(el)el.focus();},30)">+ Termin</button>`;
+  }
+  $('mDates').innerHTML = h;
+}
+function mDateAdd() {
+  const m = cur(); const title = ($('mdTitle').value||'').trim(), date = $('mdDate').value;
+  if (!m || !title || !date) return;
+  m.dates.push({id:newId(), title, date, type:$('mdType').value});
+  mDateAdding = false; saveModules(); renderMDates();
+}
+function mDateDel(id) { const m = cur(); if (!m) return; m.dates = m.dates.filter(d => d.id !== id); saveModules(); renderMDates(); }
+
+// Aufgaben pro Modul
+function mtAdd() {
+  const m = cur(), inp = $('mtIn'), text = inp.value.trim(); if (!m || !text) return;
+  m.todos.push({id:Date.now(), text, done:false, priority:$('mtPrio').value});
+  inp.value = ''; saveModules(); renderMTodos(); renderModRow();
+}
+function mtToggle(id) { const t = cur()?.todos.find(t => t.id === id); if (t) t.done = !t.done; saveModules(); renderMTodos(); renderModRow(); }
+function mtDel(id) { const m = cur(); if (!m) return; m.todos = m.todos.filter(t => t.id !== id); saveModules(); renderMTodos(); renderModRow(); }
+function mtClearDone() { const m = cur(); if (!m) return; m.todos = m.todos.filter(t => !t.done); saveModules(); renderMTodos(); }
+function mtEdit(id, el) {
+  const t = cur()?.todos.find(t => t.id === id); if (!t || t.done) return;
+  const inp = document.createElement('input'); inp.className = 'edit-in'; inp.value = t.text;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  inp.onblur = () => { const v = inp.value.trim(); if (v) { t.text = v; saveModules(); } renderMTodos(); };
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.onblur = null; renderMTodos(); } };
+}
+function mtDrop(to, el) {
+  el.classList.remove('dragover');
+  const m = cur(); if (!m || dragMTodoSrc === null || dragMTodoSrc === to) { dragMTodoSrc = null; return; }
+  const pending = m.todos.filter(t => !t.done);
+  const [mv] = pending.splice(dragMTodoSrc, 1); pending.splice(to, 0, mv);
+  m.todos = [...pending, ...m.todos.filter(t => t.done)]; dragMTodoSrc = null; saveModules(); renderMTodos();
+}
+function renderMTodos() {
+  const m = cur(); if (!m) return;
+  const pending = m.todos.filter(t => !t.done), done = m.todos.filter(t => t.done);
+  $('mtCount').textContent = pending.length + ' offen';
+  let h = '';
+  if (!m.todos.length) h = '<div class="noitem">Keine Aufgaben</div>';
+  pending.forEach((t, i) => {
+    h += `<div class="nitem" draggable="true" ondragstart="dragMTodoSrc=${i}" ondragenter="this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondragover="event.preventDefault()" ondrop="mtDrop(${i},this)">
+      <span class="nhandle">⠿</span>
+      <div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="mtToggle(${t.id})"></div>
+      <span style="flex:1;font-size:12px;color:var(--t1)" ondblclick="mtEdit(${t.id},this)">${esc(t.text)}</span>
+      <span class="tptag" style="color:${prioCol(t.priority)}">${t.priority}</span>
+      <button class="tdel" onclick="mtDel(${t.id})">×</button>
+    </div>`;
+  });
+  if (done.length) {
+    h += `<div class="secdonerow"><span class="secdone">Erledigt</span><button class="clrdone" onclick="mtClearDone()">Alle löschen</button></div>`;
+    done.forEach(t => {
+      h += `<div class="titem">
+        <div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="mtToggle(${t.id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
+        <span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span>
+        <button class="tdel" onclick="mtDel(${t.id})">×</button>
+      </div>`;
+    });
+  }
+  $('mtScr').innerHTML = h;
+}
+
+// Notizen pro Modul
+function mNotesChange() {
+  const m = cur(); if (!m) return;
+  m.notes = $('mNotes').value;
+  localStorage.setItem('dash_modules', JSON.stringify(modules));
+  const ind = $('mNoteInd'); ind.textContent = 'Ungespeichert'; ind.style.color = 'var(--t3)';
+  clearTimeout(mNoteTimer);
+  mNoteTimer = setTimeout(() => {
+    ind.textContent = '✓ Gespeichert'; ind.style.color = 'var(--accent)'; scheduleSave();
+    setTimeout(() => { if ($('mNoteInd')) $('mNoteInd').textContent = ''; }, 2000);
+  }, 1000);
+}
+
 // ── Drag resize ────────────────────────────────────────────────────────────────
 let drag=null; const cw=[33,33,34];
 function applyCW(){['col0','col1','col2'].forEach((id,i)=>$(id).style.width=cw[i]+'%');}
@@ -732,6 +1049,7 @@ async function init() {
   loadNotepad();
   renderSemBar();
   renderQL();
+  route();
   initDrag();
   if (!localStorage.getItem('dash_pat')) setSyncStatus('none');
 }
