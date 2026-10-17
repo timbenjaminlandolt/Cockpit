@@ -45,9 +45,6 @@
   .hrow2{display:flex;gap:8px;margin-bottom:8px}
   #deadlineBar{flex:1;padding:7px 11px;background:var(--s1);border:1px solid rgba(255,69,58,0.18);border-radius:6px;display:none;align-items:center;gap:8px}
   .ddot{width:4px;height:4px;border-radius:50%;background:var(--danger);flex-shrink:0}
-  .swbar{padding:7px 12px;background:var(--s1);border:1px solid var(--b);border-radius:6px;display:flex;align-items:center;gap:10px}
-  .swlbl{font-size:9px;font-weight:500;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3)}
-  #swTime{font-size:15px;font-weight:300;color:var(--t3);letter-spacing:0.05em;font-variant-numeric:tabular-nums;min-width:78px}
   .bsm{background:transparent;border:1px solid var(--b);color:var(--t2);border-radius:4px;padding:3px 9px;cursor:pointer;font-size:12px;line-height:1.4;font-family:var(--font)}
   .hdiv{height:1px;background:var(--b);margin-bottom:10px}
 
@@ -290,7 +287,6 @@
     .hleft{flex-wrap:wrap;gap:4px 10px}
     #greet{font-size:20px}
     .hrow2{flex-wrap:wrap}
-    .swbar{flex:1}
     #cols{flex-direction:column;overflow:visible}
     .col{width:100%!important;padding:0;overflow:visible}
     .cdiv{display:none}
@@ -360,12 +356,6 @@
   <!-- Header row 2 -->
   <div class="hrow2">
     <div id="deadlineBar"><div class="ddot"></div><span id="dText"></span></div>
-    <div class="swbar">
-      <span class="swlbl">Stoppuhr</span>
-      <span id="swTime">00:00.00</span>
-      <button class="bsm" id="swBtn" onclick="swToggle()">Start</button>
-      <button class="bsm" onclick="swReset()">Reset</button>
-    </div>
     <a class="planbtn" href="#/lernplan" title="Lernplan öffnen">▦ Lernplan</a>
   </div>
 
@@ -532,7 +522,6 @@ async function loadEvents() {
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-function fmtSw(ms){const m=Math.floor(ms/60000),s=Math.floor(ms%60000/1000),cs=Math.floor(ms%1000/10);return`${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${String(cs).padStart(2,'0')}`;}
 function prioCol(p){return p==='hoch'?'#ff453a':p==='mittel'?'#0a84ff':'#48484a';}
 function deadlineCountdown(dateStr){const ms=new Date(dateStr)-new Date();if(ms<=0)return null;const h=Math.floor(ms/3600000),d=Math.floor(ms/86400000);if(h<1)return'bald';if(h<24)return`in ${h} Std`;if(d===1)return'morgen';return`in ${d} Tagen`;}
 
@@ -705,10 +694,6 @@ function renderDeadline() {
   } else { $('deadlineBar').style.display = 'none'; }
 }
 
-// ── Stopwatch ──────────────────────────────────────────────────────────────────
-let swRun=false,swEl=0,swT0=0,swIv=null;
-function swToggle(){if(swRun){clearInterval(swIv);swRun=false;$('swBtn').textContent='Start';}else{swT0=Date.now()-swEl;swRun=true;$('swBtn').textContent='Stop';swIv=setInterval(()=>{swEl=Date.now()-swT0;const el=$('swTime');el.textContent=fmtSw(swEl);el.style.color=swEl>0?'var(--t1)':'var(--t3)';},33);}}
-function swReset(){clearInterval(swIv);swRun=false;swEl=0;$('swTime').textContent='00:00.00';$('swTime').style.color='var(--t3)';$('swBtn').textContent='Start';}
 
 // ── Todo ───────────────────────────────────────────────────────────────────────
 let todos = (()=>{try{return JSON.parse(localStorage.getItem('dash_todos')||'[]');}catch{return[];}})();
