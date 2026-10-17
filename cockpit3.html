@@ -119,13 +119,13 @@
   #stCancel{width:100%;background:transparent;border:none;color:var(--t3);padding:8px;font-size:12px;cursor:pointer;font-family:var(--font);margin-top:6px}
 
   /* Sidebar */
-  #side{border-right:1px solid var(--b);padding:22px 12px 12px;display:flex;flex-direction:column;min-height:0}
+  #side{border-right:1px solid var(--b);padding:22px 12px 12px;display:flex;flex-direction:column;min-height:0;overflow-y:auto}
   .brand{font-size:14px;font-weight:600;padding:0 10px;margin-bottom:20px}
   .nav{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:7px;font-size:13px;color:var(--t2);text-decoration:none}
   .nav:hover{color:var(--t1)}
   .nav.on{background:var(--s2);color:var(--t1)}
   .slbl{font-size:10px;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:var(--t3);margin:22px 10px 6px}
-  .mlist{display:flex;flex-direction:column;gap:1px;overflow-y:auto;min-height:0}
+  .mlist{display:flex;flex-direction:column;gap:1px}
   .m-item{display:flex;align-items:center;gap:10px;padding:7px 10px;border-radius:7px;font-size:13px;color:var(--t2);text-decoration:none;user-select:none}
   .m-item:hover{color:var(--t1)}
   .m-item.active{background:var(--s2);color:var(--t1)}
@@ -135,6 +135,14 @@
   .m-cnt{font-size:11px;color:var(--t3);font-variant-numeric:tabular-nums}
   .mlist .ql-addbtn{margin:6px 10px 0;align-self:flex-start}
   .mlist .ql-form{flex-direction:column;align-items:stretch;padding:6px 10px 0}
+  .qlink{display:flex;align-items:center;gap:10px;padding:6px 10px;border-radius:7px;font-size:13px;color:var(--t2);text-decoration:none}
+  .qlink:hover{color:var(--t1);background:var(--s1)}
+  .qlink .mn{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .qlink .ql-x{visibility:hidden;background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;line-height:1;padding:0 2px}
+  .qlink:hover .ql-x{visibility:visible}
+  .qlink .ql-x:hover{color:var(--danger)}
+  .qarrow{font-size:11px;color:var(--t3);width:7px;text-align:center}
+  .qlmob{display:none}
   .sfoot{margin-top:auto;padding-top:14px}
   .sbot{display:flex;align-items:center;justify-content:space-between;padding:0 6px 0 10px}
 
@@ -308,6 +316,9 @@
     #panel{border-left:none;padding:24px 0 0}
     #panel .phd:first-child,#calFrame{display:none}
     #notepad{min-height:240px}
+    .qlmob{display:block;margin-top:14px}
+    .qlchips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+    .qlchips a{background:var(--s2);border-radius:20px;padding:7px 13px;font-size:14px;color:var(--t2);text-decoration:none}
     .calbox{flex:none;height:calc(100vh - 170px)}
     #tabbar{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:500;background:rgba(5,5,5,0.96);border-top:1px solid var(--b);padding:8px 0 max(10px,env(safe-area-inset-bottom));justify-content:space-around}
     #tabbar a,#tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;background:none;border:none;color:var(--t3);font-size:10px;text-decoration:none;font-family:var(--font);min-width:64px;cursor:pointer}
@@ -354,6 +365,8 @@
     <a class="nav" data-v="plan" href="#/lernplan">▦ Lernplan</a>
     <div class="slbl">Module</div>
     <div class="mlist" id="mRow"></div>
+    <div class="slbl">Links</div>
+    <div class="mlist" id="qlRow"></div>
     <div class="sfoot">
       <div class="semrow">
         <span class="semlbl" id="semName">FS26</span>
@@ -397,6 +410,7 @@
         <div id="notepadWrap">
           <textarea id="notepad" placeholder="Freie Notizen …" oninput="notepadChange()"></textarea>
         </div>
+        <div class="qlmob"><span class="sec">Links</span><div class="qlchips" id="qlMob"></div></div>
       </section>
     </div>
 
@@ -471,13 +485,14 @@ const dataRepo = () => localStorage.getItem('dash_repo') || DEFAULT_REPO;
 const repoUrl = () => `https://api.github.com/repos/${dataRepo()}/contents/${DATA_FILE}`;
 const b64enc = s => { let o=''; new TextEncoder().encode(s).forEach(c => o += String.fromCharCode(c)); return btoa(o); };
 const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
-const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules, ...(plan ? {plan} : {})});
+const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules, links: quickLinks, ...(plan ? {plan} : {})});
 
 function applyData(data) {
   if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
   if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
   if (Array.isArray(data.modules)) { modules = data.modules.map(normMod); localStorage.setItem('dash_modules', JSON.stringify(modules)); }
   if (data.plan && Array.isArray(data.plan.sheets) && data.plan.sheets.length) { plan = data.plan; localStorage.setItem('dash_plan', JSON.stringify(plan)); }
+  if (Array.isArray(data.links)) { quickLinks = data.links; localStorage.setItem('dash_ql', JSON.stringify(quickLinks)); }
 }
 
 // Liest data.json aus dem Repo. Rückgabe: {state:'ok',data} | {state:'missing'} | {state:'error'}
@@ -527,7 +542,12 @@ async function dataLoad() {
   if (!pat) return false;
   setSyncStatus('syncing');
   const res = await repoRead(pat);
-  if (res.state === 'ok') { applyData(res.data); setSyncStatus('synced'); return true; }
+  if (res.state === 'ok') {
+    applyData(res.data); setSyncStatus('synced');
+    // Links lagen früher nur im Browser: beim ersten Laden ins Repo übernehmen
+    if (!Array.isArray(res.data.links) && quickLinks.length) scheduleSave();
+    return true;
+  }
   if (res.state === 'error') { setSyncStatus('offline'); return false; }
   // Repo-Datei fehlt noch (oder PAT ohne Repo-Recht): alten Gist laden und ins Repo übernehmen
   await gistLoad();
@@ -571,7 +591,7 @@ document.addEventListener('visibilitychange', async () => {
   const pat = localStorage.getItem('dash_pat'); if (!pat) return;
   const res = await repoRead(pat);
   if (res.state !== 'ok' || savePending) return;
-  applyData(res.data); renderTodos();
+  applyData(res.data); renderTodos(); renderQL();
   if (document.activeElement !== $('notepad')) loadNotepad();
   refreshModules();
 });
@@ -706,7 +726,7 @@ function saveSettings() {
   const repo = $('stRepo').value.trim(); if (repo && repo !== dataRepo()) { localStorage.setItem('dash_repo', repo); repoSha = null; }
   closeSettings();
   renderSemBar();
-  dataLoad().then(() => { renderTodos(); loadNotepad(); refreshModules(); });
+  dataLoad().then(() => { renderTodos(); loadNotepad(); renderQL(); refreshModules(); });
 }
 
 // ── Semester bar ──────────────────────────────────────────────────────────────
@@ -722,6 +742,35 @@ function renderSemBar() {
   const weeksLeft = Math.ceil((e - now) / (7 * 24 * 3600000));
   $('semFill').style.width = pct + '%';
   $('semInfo').textContent = `${pct}% · noch ${weeksLeft} Wo.`;
+}
+
+// ── Links (Sidebar; auf dem Handy unter den Notizen) ───────────────────────────
+let quickLinks = (()=>{try{return JSON.parse(localStorage.getItem('dash_ql')||'[]');}catch{return[];}})();
+let qlAdding = false;
+
+function saveQL() { localStorage.setItem('dash_ql', JSON.stringify(quickLinks)); scheduleSave(); }
+
+function renderQL() {
+  let h = '';
+  quickLinks.forEach((l, i) => {
+    h += `<a class="qlink" href="${escA(l.url)}" target="_blank" rel="noopener"><span class="qarrow">↗</span><span class="mn">${esc(l.label)}</span><button class="ql-x" title="Link entfernen" onclick="event.preventDefault();qlDel(${i})">×</button></a>`;
+  });
+  if (qlAdding) {
+    h += `<div class="ql-form"><input id="qlLbl" class="ql-in" placeholder="Name, z.B. Moodle"><input id="qlUrl" class="ql-in" placeholder="https://…" onkeydown="if(event.key==='Enter')qlConfirm();if(event.key==='Escape'){qlAdding=false;renderQL();}"><div style="display:flex;gap:5px"><button class="ql-ok" onclick="qlConfirm()">OK</button><button class="ql-cancel" onclick="qlAdding=false;renderQL()">✕</button></div></div>`;
+  } else {
+    h += `<button class="ql-addbtn" onclick="qlAdding=true;renderQL();setTimeout(()=>{const el=$('qlLbl');if(el)el.focus();},30)">+ Link</button>`;
+  }
+  $('qlRow').innerHTML = h;
+  $('qlMob').innerHTML = quickLinks.map(l => `<a href="${escA(l.url)}" target="_blank" rel="noopener">${esc(l.label)}</a>`).join('');
+}
+
+function qlDel(i) { quickLinks.splice(i, 1); saveQL(); renderQL(); }
+
+function qlConfirm() {
+  const label = ($('qlLbl').value || '').trim(), url = ($('qlUrl').value || '').trim();
+  if (!label || !url) return;
+  quickLinks.push({label, url: url.startsWith('http') ? url : 'https://' + url});
+  saveQL(); qlAdding = false; renderQL();
 }
 
 // ── Module ─────────────────────────────────────────────────────────────────────
@@ -1348,6 +1397,7 @@ async function init() {
   renderTodos();
   loadNotepad();
   renderSemBar();
+  renderQL();
   route();
   if (!localStorage.getItem('dash_pat')) setSyncStatus('none');
 }
