@@ -193,8 +193,10 @@
   .kvf{display:grid;grid-template-columns:92px 1fr;gap:6px 10px;align-items:center;font-size:12px;margin-bottom:12px}
   .kvf .ql-in,.kvf .tpsel{width:100%;padding:5px 8px;font-size:12px;height:28px}
   .kvf2{display:flex;gap:6px}
-  .linkbtn{background:none;border:none;color:var(--t3);font-size:10px;cursor:pointer;font-family:var(--font);padding:0}
-  .linkbtn:hover{color:var(--t1)}
+  .linkbtn{background:transparent;border:1px solid var(--b);border-radius:4px;color:var(--t2);font-size:11px;cursor:pointer;font-family:var(--font);padding:2px 9px}
+  .linkbtn:hover{color:var(--t1);border-color:var(--bm)}
+  .kv.click{cursor:pointer;border-radius:5px;margin-left:-6px;padding:4px 6px;transition:background 0.15s}
+  .kv.click:hover{background:var(--s2)}
 
   /* Prüfungsthemen */
   .mhalf{display:flex;flex-direction:column;min-height:0}
@@ -1030,10 +1032,11 @@ function renderMInfo() {
     const mail = i.email ? `<a href="mailto:${escA(i.email)}">${esc(i.email)}</a>` : '';
     const dauer = x.dauer ? esc(x.dauer) + (/^\d+$/.test(String(x.dauer).trim()) ? ' min' : '') : '';
     const ects = i.ects ? esc(i.ects) + (/^\d+([.,]\d+)?$/.test(String(i.ects).trim()) ? ' ECTS' : '') : '';
-    h = `<div class="msub"><span class="sec">Fach</span><button class="linkbtn" onclick="mInfoEdit=true;renderMInfo();setTimeout(()=>$('fiDoz')?.focus(),30)">Bearbeiten</button></div>
-      <div class="kv">${row('Dozent', esc(i.dozent||''))}${row('E-Mail', mail)}${row('Raum', esc(i.raum||''))}${row('Tag / Zeit', zeit)}${row('ECTS', ects)}</div>
-      <div class="msub"><span class="sec">Prüfung</span></div>
-      <div class="kv">${row('Art', esc(x.art||''))}${row('Format', esc(x.format||''))}${row('Dauer', dauer)}${row('Spick', esc(x.spick||''))}${row('Hilfsmittel', esc(x.hilfsmittel||''))}</div>`;
+    const ed = `mInfoEdit=true;renderMInfo();setTimeout(()=>$('fiDoz')?.focus(),30)`;
+    h = `<div class="msub"><span class="sec">Fach</span><button class="linkbtn" onclick="${ed}">✎ Bearbeiten</button></div>
+      <div class="kv click" title="Klicken zum Bearbeiten" onclick="if(!event.target.closest('a')){${ed}}">${row('Dozent', esc(i.dozent||''))}${row('E-Mail', mail)}${row('Raum', esc(i.raum||''))}${row('Tag / Zeit', zeit)}${row('ECTS', ects)}</div>
+      <div class="msub"><span class="sec">Prüfung</span><button class="linkbtn" onclick="${ed}">✎ Bearbeiten</button></div>
+      <div class="kv click" title="Klicken zum Bearbeiten" onclick="${ed}">${row('Art', esc(x.art||''))}${row('Format', esc(x.format||''))}${row('Dauer', dauer)}${row('Spick', esc(x.spick||''))}${row('Hilfsmittel', esc(x.hilfsmittel||''))}</div>`;
   }
   $('mInfo').innerHTML = h;
   if (mInfoEdit) $('mInfo').querySelectorAll('input').forEach(el => el.onkeydown = e => { if (e.key === 'Enter') mInfoSave(); if (e.key === 'Escape') { mInfoEdit = false; renderMInfo(); } });
