@@ -182,6 +182,87 @@
   .dcount{font-size:11px;font-weight:500;white-space:nowrap;min-width:62px;text-align:right}
   #mNotes{flex:1;width:100%;background:var(--s2);border:1px solid var(--b);border-radius:6px;padding:11px 13px;color:var(--t1);font-size:12.5px;font-family:var(--font);resize:none;line-height:1.75;min-height:0}
   .mempty{font-size:12px;color:var(--t3);padding:6px 0 10px}
+  body.inplan #qlRow,body.inplan #cols{display:none}
+
+  /* Fach- und Prüfungsinfos */
+  .kv{display:grid;grid-template-columns:92px 1fr;gap:5px 10px;font-size:12px;margin-bottom:16px}
+  .kvl{color:var(--t3)}
+  .kvv{color:var(--t1);word-break:break-word}
+  .kvv a{color:var(--accent);text-decoration:none}
+  .kvv.empty{color:var(--t3)}
+  .kvf{display:grid;grid-template-columns:92px 1fr;gap:6px 10px;align-items:center;font-size:12px;margin-bottom:12px}
+  .kvf .ql-in,.kvf .tpsel{width:100%;padding:5px 8px;font-size:12px;height:28px}
+  .kvf2{display:flex;gap:6px}
+  .linkbtn{background:none;border:none;color:var(--t3);font-size:10px;cursor:pointer;font-family:var(--font);padding:0}
+  .linkbtn:hover{color:var(--t1)}
+
+  /* Prüfungsthemen */
+  .mhalf{display:flex;flex-direction:column;min-height:0}
+  .tpbar{display:flex;height:3px;background:var(--s3);border-radius:2px;overflow:hidden;margin-bottom:10px;flex-shrink:0}
+  .tpbar div{height:100%;transition:width 0.4s}
+  .tpitem{display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--b);user-select:none}
+  .tpitem.dragover{border-top:2px solid var(--accent)}
+  .tpst{width:12px;height:12px;border-radius:3px;flex-shrink:0;cursor:pointer;border:1.5px solid}
+  .tptitle{flex:1;font-size:12px;color:var(--t1);cursor:pointer;line-height:1.4}
+  .tpmore{font-size:10px;color:var(--t3);cursor:pointer;width:12px;text-align:center}
+  .tpdet{padding:4px 0 8px 20px;border-bottom:1px solid var(--b)}
+  .tpta{width:100%;min-height:74px;background:var(--s2);border:1px solid var(--b);border-radius:5px;padding:7px 9px;color:var(--t1);font-size:12px;font-family:var(--font);line-height:1.6;resize:vertical}
+  .tplg{display:flex;gap:9px;font-size:9px;color:var(--t3)}
+  .tplg i{display:inline-block;width:7px;height:7px;border-radius:2px;margin-right:3px;vertical-align:-1px}
+
+  /* Lernplan-Button im Header */
+  .planbtn{display:flex;align-items:center;gap:7px;padding:7px 12px;background:var(--s1);border:1px solid var(--b);border-radius:6px;color:var(--t2);font-size:12px;text-decoration:none;transition:border-color 0.15s,color 0.15s}
+  .planbtn:hover,body.inplan .planbtn{border-color:var(--bm);color:var(--t1)}
+
+  /* Lernplan */
+  #planView{display:none;flex:1;min-height:0;flex-direction:column}
+  body.inplan #planView{display:flex}
+  .phead{display:flex;align-items:center;gap:10px;margin-bottom:10px;flex-shrink:0;flex-wrap:wrap}
+  .ptabs{display:flex;gap:4px;flex-wrap:wrap;flex:1}
+  .ptab{background:transparent;border:1px solid transparent;border-radius:5px;padding:4px 11px;color:var(--t3);font-size:12px;cursor:pointer;font-family:var(--font)}
+  .ptab:hover{color:var(--t1)}
+  .ptab.active{background:var(--s2);border-color:var(--bm);color:var(--t1)}
+  .pwrap{flex:1;min-height:0;overflow:auto;border:1px solid var(--b);border-radius:6px;background:var(--s1)}
+  .pt{border-collapse:collapse;table-layout:fixed;font-size:12px}
+  .pt th,.pt td{border-right:1px solid var(--b);border-bottom:1px solid var(--b);padding:0;height:30px;position:relative}
+  .pt thead th{position:sticky;top:0;background:var(--s2);z-index:2;text-align:left}
+  .pt tfoot td{position:sticky;bottom:0;background:var(--s2);color:var(--t2);font-size:11px;padding:0 8px;font-variant-numeric:tabular-nums}
+  .pth{display:flex;align-items:center}
+  .phin{flex:1;min-width:0;background:transparent;border:none;color:var(--t2);font-size:10px;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;padding:0 8px;height:30px;font-family:var(--font)}
+  .phin:focus{color:var(--t1)}
+  .pcm{background:none;border:none;color:var(--t3);cursor:pointer;font-size:10px;padding:0 7px;height:30px}
+  .pcm:hover{color:var(--t1)}
+  .prs{position:absolute;right:-3px;top:0;bottom:0;width:6px;cursor:col-resize;z-index:3}
+  .prs:hover{background:var(--accent);opacity:0.5}
+  .prn{width:44px;text-align:center;color:var(--t3);font-size:10px;background:var(--s2);cursor:grab}
+  .prn .prx{display:none;background:none;border:none;color:var(--t3);cursor:pointer;font-size:14px;line-height:1}
+  .pt tbody tr:hover .prn span{display:none}
+  .pt tbody tr:hover .prn .prx{display:inline}
+  .prn .prx:hover{color:var(--danger)}
+  .pt tbody tr.dragover td{border-top:2px solid var(--accent)}
+  .pc{width:100%;height:30px;background:transparent;border:none;color:var(--t1);font-size:12px;padding:0 8px;font-family:var(--font)}
+  .pc:focus{background:rgba(10,132,255,0.08);box-shadow:inset 0 0 0 1.5px var(--accent);outline:none}
+  select.pc{cursor:pointer;-webkit-appearance:none;appearance:none}
+  input.pc[type=date]{color-scheme:dark}
+  input.pc[type=date]:invalid{color:var(--t3)}
+  .pc.num{text-align:right;font-variant-numeric:tabular-nums}
+  .pchk{width:15px;height:15px;margin:0 auto;display:block;accent-color:var(--accent);cursor:pointer;color-scheme:dark}
+  .pt tr.pdone td .pc:not(select){color:var(--t3)}
+  .pt tr.pdone td input.pc[type=text]{text-decoration:line-through}
+  .pc[data-v="Offen"]{color:var(--t2)}
+  .pc[data-v="In Arbeit"]{color:var(--exam)}
+  .pc[data-v="Erledigt"]{color:#30d158}
+  .padd{width:40px;background:var(--s2)}
+  .padd button{width:100%;height:30px;background:none;border:none;color:var(--t3);cursor:pointer;font-size:15px}
+  .padd button:hover{color:var(--t1)}
+  .pfoot{display:flex;gap:8px;align-items:center;padding:8px 0 0;flex-shrink:0}
+  .phint{font-size:10px;color:var(--t3);margin-left:auto}
+  .pmenu{position:fixed;z-index:700;background:var(--s2);border:1px solid var(--bm);border-radius:8px;padding:6px;min-width:180px;box-shadow:0 10px 30px rgba(0,0,0,0.5)}
+  .pmenu .tpsel{width:100%;height:28px;margin-bottom:4px}
+  .pmenu button{display:block;width:100%;text-align:left;background:none;border:none;color:var(--t1);font-size:12px;padding:6px 8px;border-radius:4px;cursor:pointer;font-family:var(--font)}
+  .pmenu button:hover{background:var(--s3)}
+  .pmenu button.danger{color:var(--danger)}
+  .pmenu .pml{font-size:9px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;padding:4px 8px 4px}
 
   /* Phone layout — only applies below 760px, desktop unchanged */
   @media (max-width:760px){
@@ -190,7 +271,14 @@
     .mcol+.mcol{border-left:none}
     #mNotes{min-height:260px;font-size:16px}
     .m-chip{font-size:14px;padding:7px 12px}
-    .mtitle-in,.mform .ql-in{font-size:16px}
+    .mtitle-in,.mform .ql-in,.kvf .ql-in,.kvf .tpsel{font-size:16px}
+    .mhalf{margin-bottom:22px}
+    .tpta{font-size:15px}
+    .pwrap{max-height:70vh}
+    .pc{font-size:15px;height:36px}
+    .pt th,.pt td{height:36px}
+    .planbtn{flex:1;justify-content:center}
+    .phint{display:none}
     html,body{height:auto;overflow:auto}
     #app{height:auto;min-height:100vh;padding:12px 16px 0;padding-top:max(12px,env(safe-area-inset-top))}
     .hrow1{flex-wrap:wrap;gap:6px 12px}
@@ -273,6 +361,7 @@
       <button class="bsm" id="swBtn" onclick="swToggle()">Start</button>
       <button class="bsm" onclick="swReset()">Reset</button>
     </div>
+    <a class="planbtn" href="#/lernplan" title="Lernplan öffnen">▦ Lernplan</a>
   </div>
 
   <!-- Semester progress -->
@@ -342,6 +431,9 @@
 
   <!-- Modul-Seite (wird per #/m/<id> angezeigt) -->
   <div id="modView"></div>
+
+  <!-- Lernplan (wird per #/lernplan angezeigt) -->
+  <div id="planView"></div>
 
   <!-- Bottom Bar -->
   <div class="botbar">
@@ -458,12 +550,13 @@ const dataRepo = () => localStorage.getItem('dash_repo') || DEFAULT_REPO;
 const repoUrl = () => `https://api.github.com/repos/${dataRepo()}/contents/${DATA_FILE}`;
 const b64enc = s => { let o=''; new TextEncoder().encode(s).forEach(c => o += String.fromCharCode(c)); return btoa(o); };
 const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
-const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules});
+const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules, ...(plan ? {plan} : {})});
 
 function applyData(data) {
   if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
   if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
   if (Array.isArray(data.modules)) { modules = data.modules.map(normMod); localStorage.setItem('dash_modules', JSON.stringify(modules)); }
+  if (data.plan && Array.isArray(data.plan.sheets) && data.plan.sheets.length) { plan = data.plan; localStorage.setItem('dash_plan', JSON.stringify(plan)); }
 }
 
 // Liest data.json aus dem Repo. Rückgabe: {state:'ok',data} | {state:'missing'} | {state:'error'}
@@ -776,8 +869,11 @@ const DTYPES = {exam:{lbl:'Prüfung',col:'#ff9f0a'}, deadline:{lbl:'Abgabe',col:
 function normMod(m) {
   return {id:String(m.id), name:String(m.name||'Modul'), color:m.color||MCOLORS[0],
     links:Array.isArray(m.links)?m.links:[], todos:Array.isArray(m.todos)?m.todos:[],
-    dates:Array.isArray(m.dates)?m.dates:[], notes:typeof m.notes==='string'?m.notes:''};
+    dates:Array.isArray(m.dates)?m.dates:[], notes:typeof m.notes==='string'?m.notes:'',
+    info:(m.info&&typeof m.info==='object')?m.info:{}, exam:(m.exam&&typeof m.exam==='object')?m.exam:{},
+    topics:Array.isArray(m.topics)?m.topics:[]};
 }
+const escA = s => esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 let modules = (()=>{try{return JSON.parse(localStorage.getItem('dash_modules')||'[]').map(normMod);}catch{return[];}})();
 let curMod = null, mAdding = false, dragModSrc = null, dragMTodoSrc = null;
 let mLinkAdding = false, mDateAdding = false, mNoteTimer = null;
@@ -790,7 +886,7 @@ function newId() { return Date.now().toString(36) + Math.random().toString(36).s
 // Kachelleiste oben
 function renderModRow() {
   let h = '<span class="mlbl">Module</span>';
-  if (curMod) h += `<a class="m-chip m-home" href="#/">‹ Übersicht</a>`;
+  if (curView !== 'home') h += `<a class="m-chip m-home" href="#/">‹ Übersicht</a>`;
   modules.forEach((m, i) => {
     const open = m.todos.filter(t => !t.done).length;
     h += `<a class="m-chip${curMod===m.id?' active':''}" href="#/m/${m.id}" draggable="true"
@@ -822,17 +918,21 @@ function modDrop(to) {
   dragModSrc = null; saveModules(); renderModRow();
 }
 
-// Routing: #/m/<id> = Modulseite, alles andere = Startseite
+// Routing: #/m/<id> = Modulseite, #/lernplan = Lernplan, alles andere = Startseite
+let curView = 'home';
 function route() {
   const hit = location.hash.match(/^#\/m\/([\w-]+)/);
   const m = hit && modById(hit[1]);
   if (hit && !m) history.replaceState(null, '', location.pathname + location.search);
-  const changed = curMod !== (m ? m.id : null);
-  curMod = m ? m.id : null;
+  const view = m ? 'm:' + m.id : (location.hash === '#/lernplan' ? 'plan' : 'home');
+  const changed = curView !== view;
+  curView = view; curMod = m ? m.id : null;
   document.body.classList.toggle('inmod', !!curMod);
-  if (changed) { mLinkAdding = false; mDateAdding = false; }
+  document.body.classList.toggle('inplan', view === 'plan');
+  if (changed) { mLinkAdding = false; mDateAdding = false; mInfoEdit = false; tpOpen.clear(); closePMenu(); }
   renderModRow();
   if (curMod) renderModView();
+  if (view === 'plan') renderPlanView();
   if (changed) window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
@@ -840,7 +940,9 @@ window.addEventListener('hashchange', route);
 function refreshModules() {
   if (curMod && !cur()) { location.hash = '#/'; return; }
   renderModRow();
-  if (curMod) { renderMLinks(); renderMDates(); renderMTodos(); if (document.activeElement !== $('mNotes')) $('mNotes').value = cur().notes; }
+  const ae = document.activeElement;
+  if (curMod && !(ae && ae.closest && ae.closest('#modView'))) renderModView();
+  if (curView === 'plan' && !(ae && ae.closest && ae.closest('#planView'))) renderPlanView();
 }
 
 // Modulseite
@@ -857,6 +959,7 @@ function renderModView() {
     <div class="mcols">
       <div class="col mcol">
         <div class="scr">
+          <div id="mInfo"></div>
           <div class="msub"><span class="sec">Links</span></div>
           <div class="mlinks" id="mLinks"></div>
           <div class="msub"><span class="sec">Prüfungen & Termine</span></div>
@@ -864,21 +967,135 @@ function renderModView() {
         </div>
       </div>
       <div class="col mcol">
-        <div class="msub"><span class="sec">Aufgaben</span><span id="mtCount" style="font-size:9px;color:var(--t3)"></span></div>
-        <div class="tinrow">
-          <input type="text" id="mtIn" class="tin" placeholder="Neue Aufgabe für ${esc(m.name)}" onkeydown="if(event.key==='Enter')mtAdd()">
-          <select id="mtPrio" class="tpsel"><option value="hoch">Hoch</option><option value="mittel" selected>Mittel</option><option value="tief">Tief</option></select>
-          <button class="tadd" onclick="mtAdd()">+</button>
+        <div class="mhalf" style="flex:3">
+          <div class="msub"><span class="sec">Prüfungsthemen</span><span id="tpProg" style="font-size:9px;color:var(--t3)"></span></div>
+          <div class="tpbar"><div id="tpBarOk" style="background:#30d158;width:0"></div><div id="tpBarUn" style="background:var(--exam);width:0"></div></div>
+          <div class="tinrow">
+            <input type="text" id="tpIn" class="tin" placeholder="Neues Thema, z.B. Little's Law" onkeydown="if(event.key==='Enter')tpAdd()">
+            <button class="tadd" onclick="tpAdd()">+</button>
+          </div>
+          <div id="tpList" class="scr"></div>
+          <div class="tplg" style="padding:6px 0 12px"><span><i style="background:transparent;border:1.5px solid var(--t3)"></i>offen</span><span><i style="background:var(--exam)"></i>unsicher</span><span><i style="background:#30d158"></i>sitzt</span><span style="margin-left:auto">Kästchen klicken = Status · Thema klicken = Inhalt</span></div>
         </div>
-        <div id="mtScr" class="scr"></div>
+        <div class="mhalf" style="flex:2">
+          <div class="msub"><span class="sec">Aufgaben</span><span id="mtCount" style="font-size:9px;color:var(--t3)"></span></div>
+          <div class="tinrow">
+            <input type="text" id="mtIn" class="tin" placeholder="Neue Aufgabe für ${escA(m.name)}" onkeydown="if(event.key==='Enter')mtAdd()">
+            <select id="mtPrio" class="tpsel"><option value="hoch">Hoch</option><option value="mittel" selected>Mittel</option><option value="tief">Tief</option></select>
+            <button class="tadd" onclick="mtAdd()">+</button>
+          </div>
+          <div id="mtScr" class="scr"></div>
+        </div>
       </div>
       <div class="col mcol">
         <div class="msub"><span class="sec">Notizen</span><span id="mNoteInd" style="font-size:9px;color:var(--t3)"></span></div>
-        <textarea id="mNotes" placeholder="Notizen zu ${esc(m.name)} …" oninput="mNotesChange()"></textarea>
+        <textarea id="mNotes" placeholder="Notizen zu ${escA(m.name)} …" oninput="mNotesChange()"></textarea>
       </div>
     </div>`;
   $('mNotes').value = m.notes;
-  renderMLinks(); renderMDates(); renderMTodos();
+  renderMInfo(); renderMLinks(); renderMDates(); renderTopics(); renderMTodos();
+}
+
+// Fach- und Prüfungsinfos
+let mInfoEdit = false;
+const WTAGE = ['Montag','Dienstag','Mittwoch','Donnerstag','Freitag','Samstag'];
+const EXART = ['Schriftlich','Mündlich','Projekt / Arbeit','Kombination','Keine Endprüfung'];
+const EXFMT = ['Analog (Papier)','Digital (Laptop)','Digital (Safe Exam Browser)'];
+const opts = (list, v) => '<option value="">—</option>' + list.map(o => `<option${o===v?' selected':''}>${esc(o)}</option>`).join('');
+function renderMInfo() {
+  const m = cur(); if (!m) return; const i = m.info, x = m.exam;
+  let h;
+  if (mInfoEdit) {
+    const f = (id, v, ph, extra='') => `<input id="${id}" class="ql-in" value="${escA(v||'')}" placeholder="${ph}" ${extra}>`;
+    h = `<div class="msub"><span class="sec">Fach</span></div>
+      <div class="kvf">
+        <span class="kvl">Dozent</span>${f('fiDoz', i.dozent, 'Name')}
+        <span class="kvl">E-Mail</span>${f('fiMail', i.email, 'name@zhaw.ch', 'type="email"')}
+        <span class="kvl">Raum</span>${f('fiRaum', i.raum, 'z.B. TS O1.13')}
+        <span class="kvl">Tag / Zeit</span><div class="kvf2"><select id="fiTag" class="tpsel">${opts(WTAGE, i.tag)}</select>${f('fiZeit', i.zeit, '08:00–09:35')}</div>
+        <span class="kvl">ECTS</span>${f('fiEcts', i.ects, 'z.B. 4', 'inputmode="numeric"')}
+      </div>
+      <div class="msub"><span class="sec">Prüfung</span></div>
+      <div class="kvf">
+        <span class="kvl">Art</span><select id="feArt" class="tpsel">${opts(EXART, x.art)}</select>
+        <span class="kvl">Format</span><select id="feFmt" class="tpsel">${opts(EXFMT, x.format)}</select>
+        <span class="kvl">Dauer</span>${f('feDauer', x.dauer, 'Minuten, z.B. 90', 'inputmode="numeric"')}
+        <span class="kvl">Spick</span>${f('feSpick', x.spick, 'z.B. 2 A4-Seiten beidseitig')}
+        <span class="kvl">Hilfsmittel</span>${f('feHilf', x.hilfsmittel, 'z.B. Taschenrechner, Open Book')}
+      </div>
+      <div style="display:flex;gap:6px;margin-bottom:18px"><button class="ql-ok" onclick="mInfoSave()">Speichern</button><button class="ql-cancel" onclick="mInfoEdit=false;renderMInfo()">Abbrechen</button></div>`;
+  } else {
+    const row = (l, v) => `<span class="kvl">${l}</span><span class="kvv${v?'':' empty'}">${v||'—'}</span>`;
+    const zeit = [i.tag, i.zeit].filter(Boolean).map(esc).join(' · ');
+    const mail = i.email ? `<a href="mailto:${escA(i.email)}">${esc(i.email)}</a>` : '';
+    const dauer = x.dauer ? esc(x.dauer) + (/^\d+$/.test(String(x.dauer).trim()) ? ' min' : '') : '';
+    const ects = i.ects ? esc(i.ects) + (/^\d+([.,]\d+)?$/.test(String(i.ects).trim()) ? ' ECTS' : '') : '';
+    h = `<div class="msub"><span class="sec">Fach</span><button class="linkbtn" onclick="mInfoEdit=true;renderMInfo();setTimeout(()=>$('fiDoz')?.focus(),30)">Bearbeiten</button></div>
+      <div class="kv">${row('Dozent', esc(i.dozent||''))}${row('E-Mail', mail)}${row('Raum', esc(i.raum||''))}${row('Tag / Zeit', zeit)}${row('ECTS', ects)}</div>
+      <div class="msub"><span class="sec">Prüfung</span></div>
+      <div class="kv">${row('Art', esc(x.art||''))}${row('Format', esc(x.format||''))}${row('Dauer', dauer)}${row('Spick', esc(x.spick||''))}${row('Hilfsmittel', esc(x.hilfsmittel||''))}</div>`;
+  }
+  $('mInfo').innerHTML = h;
+  if (mInfoEdit) $('mInfo').querySelectorAll('input').forEach(el => el.onkeydown = e => { if (e.key === 'Enter') mInfoSave(); if (e.key === 'Escape') { mInfoEdit = false; renderMInfo(); } });
+}
+function mInfoSave() {
+  const m = cur(); if (!m) return; const v = id => $(id).value.trim();
+  m.info = {dozent:v('fiDoz'), email:v('fiMail'), raum:v('fiRaum'), tag:v('fiTag'), zeit:v('fiZeit'), ects:v('fiEcts')};
+  m.exam = {art:v('feArt'), format:v('feFmt'), dauer:v('feDauer'), spick:v('feSpick'), hilfsmittel:v('feHilf')};
+  mInfoEdit = false; saveModules(); renderMInfo();
+}
+
+// Prüfungsthemen: {id, title, details, status: open|unsure|ok}
+const TPST = {open:{lbl:'offen', bg:'transparent', bd:'var(--t3)'}, unsure:{lbl:'unsicher', bg:'var(--exam)', bd:'var(--exam)'}, ok:{lbl:'sitzt', bg:'#30d158', bd:'#30d158'}};
+const tpOpen = new Set(); let dragTpSrc = null;
+function tpAdd() {
+  const m = cur(), inp = $('tpIn'), title = inp.value.trim(); if (!m || !title) return;
+  m.topics.push({id:newId(), title, details:'', status:'open'});
+  inp.value = ''; saveModules(); renderTopics();
+}
+function tpCycle(id) {
+  const t = cur()?.topics.find(t => t.id === id); if (!t) return;
+  t.status = t.status === 'open' ? 'unsure' : t.status === 'unsure' ? 'ok' : 'open';
+  saveModules(); renderTopics();
+}
+function tpToggle(id) { tpOpen.has(id) ? tpOpen.delete(id) : tpOpen.add(id); renderTopics(); if (tpOpen.has(id)) setTimeout(() => document.querySelector(`.tpta[data-id="${id}"]`)?.focus(), 30); }
+function tpDetails(id, v) { const t = cur()?.topics.find(t => t.id === id); if (!t) return; t.details = v; saveModules(); }
+function tpDel(id) {
+  const m = cur(); const t = m?.topics.find(t => t.id === id); if (!t) return;
+  if (t.details && !confirm(`Thema „${t.title}“ inkl. Inhalt löschen?`)) return;
+  m.topics = m.topics.filter(t => t.id !== id); tpOpen.delete(id); saveModules(); renderTopics();
+}
+function tpRename(id, el) {
+  const t = cur()?.topics.find(t => t.id === id); if (!t) return;
+  const inp = document.createElement('input'); inp.className = 'edit-in'; inp.value = t.title;
+  el.replaceWith(inp); inp.focus(); inp.select();
+  inp.onblur = () => { const v = inp.value.trim(); if (v) { t.title = v; saveModules(); } renderTopics(); };
+  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.onblur = null; renderTopics(); } };
+}
+function tpDrop(to, el) {
+  el.classList.remove('dragover');
+  const m = cur(); if (!m || dragTpSrc === null || dragTpSrc === to) { dragTpSrc = null; return; }
+  const [t] = m.topics.splice(dragTpSrc, 1); m.topics.splice(to, 0, t); dragTpSrc = null; saveModules(); renderTopics();
+}
+function renderTopics() {
+  const m = cur(); if (!m) return;
+  const n = m.topics.length, ok = m.topics.filter(t => t.status === 'ok').length, un = m.topics.filter(t => t.status === 'unsure').length;
+  $('tpProg').textContent = n ? `${ok}/${n} sitzen${un ? ` · ${un} unsicher` : ''}` : '';
+  $('tpBarOk').style.width = n ? (ok / n * 100) + '%' : '0';
+  $('tpBarUn').style.width = n ? (un / n * 100) + '%' : '0';
+  let h = n ? '' : '<div class="noitem">Noch keine Themen – trag ein, was an der Endprüfung drankommt</div>';
+  m.topics.forEach((t, i) => {
+    const st = TPST[t.status] || TPST.open, open = tpOpen.has(t.id);
+    h += `<div class="tpitem" draggable="true" ondragstart="dragTpSrc=${i}" ondragenter="this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondragover="event.preventDefault()" ondrop="tpDrop(${i},this)">
+      <span class="nhandle">⠿</span>
+      <span class="tpst" style="background:${st.bg};border-color:${st.bd}" title="Status: ${st.lbl} – klicken zum Wechseln" onclick="tpCycle('${t.id}')"></span>
+      <span class="tptitle" onclick="tpToggle('${t.id}')" ondblclick="event.stopPropagation();tpRename('${t.id}',this)" title="Klicken: Inhalt · Doppelklick: umbenennen">${esc(t.title)}</span>
+      <span class="tpmore" onclick="tpToggle('${t.id}')">${open ? '▾' : (t.details ? '≡' : '▸')}</span>
+      <button class="tdel" onclick="tpDel('${t.id}')">×</button>
+    </div>`;
+    if (open) h += `<div class="tpdet"><textarea class="tpta" data-id="${t.id}" placeholder="Was gehört dazu? Unterthemen, Formeln, Kapitel, Übungen …" oninput="tpDetails('${t.id}',this.value)">${esc(t.details || '')}</textarea></div>`;
+  });
+  $('tpList').innerHTML = h;
 }
 
 function modRename() {
@@ -909,7 +1126,7 @@ function renderMLinks() {
   const m = cur(); if (!m) return;
   let h = m.links.length ? '' : '<div class="mempty">Noch keine Links (z.B. Moodle, Skript, Teams)</div>';
   m.links.forEach((l, i) => {
-    h += `<a class="ql-a" href="${esc(l.url)}" target="_blank" rel="noopener"><span>${esc(l.label)}</span><button class="ql-x" onclick="event.preventDefault();mLinkDel(${i})">×</button></a>`;
+    h += `<a class="ql-a" href="${escA(l.url)}" target="_blank" rel="noopener"><span>${esc(l.label)}</span><button class="ql-x" onclick="event.preventDefault();mLinkDel(${i})">×</button></a>`;
   });
   if (mLinkAdding) {
     h += `<div class="mform"><input id="mlLbl" class="ql-in" placeholder="Label"><input id="mlUrl" class="ql-in" placeholder="https://…" onkeydown="if(event.key==='Enter')mLinkAdd();if(event.key==='Escape'){mLinkAdding=false;renderMLinks();}"><button class="ql-ok" onclick="mLinkAdd()">OK</button><button class="ql-cancel" onclick="mLinkAdding=false;renderMLinks()">✕</button></div>`;
@@ -1025,6 +1242,226 @@ function mNotesChange() {
     ind.textContent = '✓ Gespeichert'; ind.style.color = 'var(--accent)'; scheduleSave();
     setTimeout(() => { if ($('mNoteInd')) $('mNoteInd').textContent = ''; }, 2000);
   }, 1000);
+}
+
+// ── Lernplan (Tabelle) ─────────────────────────────────────────────────────────
+// plan = {active, sheets:[{id, name, cols:[{id,name,type,width}], rows:[{id, c:{colId:value}}]}]}
+const PTYPES = {text:'Text', number:'Zahl', date:'Datum', check:'Checkbox', module:'Modul', status:'Status'};
+const PSTATUS = ['Offen','In Arbeit','Erledigt'];
+let plan = (()=>{try{const p=JSON.parse(localStorage.getItem('dash_plan')||'null');return p&&Array.isArray(p.sheets)&&p.sheets.length?p:null;}catch{return null;}})();
+let pDragRow = null, pResizing = null;
+
+function newSheet(name) {
+  const cols = [['Datum','date',120],['Modul','module',160],['Thema','text',230],['Ziel / Aufgabe','text',280],['Dauer (h)','number',100],['Status','status',110]]
+    .map(([n, type, width]) => ({id:newId(), name:n, type, width}));
+  return {id:newId(), name, cols, rows:Array.from({length:10}, () => ({id:newId(), c:{}}))};
+}
+function ensurePlan() { if (!plan) { plan = {active:0, sheets:[newSheet('Prüfungsphase')]}; } if (!(plan.active < plan.sheets.length)) plan.active = 0; }
+const sheet = () => plan.sheets[plan.active];
+function savePlan() { localStorage.setItem('dash_plan', JSON.stringify(plan)); scheduleSave(); }
+
+function pCell(col, v, r, c) {
+  const a = `class="pc" data-r="${r}" data-c="${c}"`;
+  v = v ?? '';
+  switch (col.type) {
+    case 'number': return `<input ${a.replace('pc','pc num')} inputmode="decimal" value="${escA(v)}">`;
+    case 'date':   return `<input ${a} type="date" required value="${escA(v)}">`;
+    case 'check':  return `<input ${a.replace('pc','pc pchk')} type="checkbox"${v ? ' checked' : ''}>`;
+    case 'status': return `<select ${a} data-v="${escA(v)}"><option value=""></option>${PSTATUS.map(s => `<option${s===v?' selected':''}>${s}</option>`).join('')}</select>`;
+    case 'module': {
+      const names = modules.map(m => m.name); if (v && !names.includes(v)) names.push(v);
+      return `<select ${a}><option value=""></option>${names.map(n => `<option${n===v?' selected':''}>${esc(n)}</option>`).join('')}</select>`;
+    }
+    default: return `<input ${a} type="text" value="${escA(v)}">`;
+  }
+}
+function pRowDone(row, s) { return s.cols.some(c => (c.type === 'status' && row.c[c.id] === 'Erledigt') || (c.type === 'check' && row.c[c.id])); }
+
+function renderPlanView() {
+  ensurePlan(); const s = sheet();
+  const tw = 44 + 40 + s.cols.reduce((a, c) => a + (c.width || 140), 0);
+  let h = `<div class="phead">
+      <span class="mtitle">Lernplan</span>
+      <div class="ptabs">${plan.sheets.map((sh, i) => `<button class="ptab${i===plan.active?' active':''}" onclick="pSwitch(${i})" ondblclick="pRenameSheet(${i})" title="Doppelklick: umbenennen">${esc(sh.name)}</button>`).join('')}
+        <button class="ptab" onclick="pAddSheet()" title="Neues Blatt">+</button></div>
+      <button class="bsm" onclick="pRenameSheet(${plan.active})">Umbenennen</button>
+      <button class="bsm" onclick="pExportCsv()">CSV / Excel</button>
+      <button class="bsm mdel" onclick="pDelSheet()">Blatt löschen</button>
+    </div>
+    <div class="pwrap"><table class="pt" id="pTable" style="width:${tw}px">
+      <thead><tr><th class="prn" style="cursor:default"></th>`;
+  s.cols.forEach((c, i) => {
+    h += `<th style="width:${c.width||140}px"><div class="pth"><input class="phin" value="${escA(c.name)}" onchange="pRenameCol(${i},this.value)" onkeydown="if(event.key==='Enter')this.blur()" title="${PTYPES[c.type]||'Text'}"><button class="pcm" onclick="pColMenu(${i},event)" title="Spalte: Typ, einfügen, sortieren, löschen">▾</button></div><span class="prs" onmousedown="pResizeStart(${i},event)"></span></th>`;
+  });
+  h += `<th class="padd"><button onclick="pAddCol(${s.cols.length})" title="Spalte hinzufügen">+</button></th></tr></thead><tbody>`;
+  s.rows.forEach((row, r) => {
+    h += `<tr class="${pRowDone(row, s) ? 'pdone' : ''}" ondragover="event.preventDefault()" ondragenter="this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondrop="pDropRow(${r},this)">
+      <td class="prn" draggable="true" ondragstart="pDragRow=${r}" title="Ziehen zum Verschieben"><span>${r + 1}</span><button class="prx" onclick="pDelRow(${r})" title="Zeile löschen">×</button></td>`;
+    s.cols.forEach((col, c) => { h += `<td>${pCell(col, row.c[col.id], r, c)}</td>`; });
+    h += `<td></td></tr>`;
+  });
+  h += `</tbody><tfoot id="pFoot"></tfoot></table></div>
+    <div class="pfoot">
+      <button class="ql-addbtn" onclick="pAddRow(true)">+ Zeile</button>
+      <button class="ql-addbtn" onclick="for(let i=0;i<10;i++)pAddRow(false);renderPlanView()">+ 10 Zeilen</button>
+      <span class="phint">Pfeiltasten / Enter navigieren · Bereiche aus Excel einfügen mit Ctrl+V · Spaltenbreite am Rand ziehen</span>
+    </div>`;
+  $('planView').innerHTML = h;
+  renderPlanFoot();
+  pBind($('pTable'));
+}
+
+function renderPlanFoot() {
+  const s = sheet(), f = $('pFoot'); if (!f) return;
+  let h = '<tr><td style="text-align:center">Σ</td>';
+  s.cols.forEach(c => {
+    let v = '';
+    if (c.type === 'number') { const sum = s.rows.reduce((a, r) => a + (parseFloat(String(r.c[c.id] ?? '').replace(',', '.')) || 0), 0); v = sum ? (Math.round(sum * 100) / 100).toLocaleString('de-CH') : ''; }
+    else if (c.type === 'check') { const n = s.rows.filter(r => r.c[c.id]).length; v = n ? `${n} ✓` : ''; }
+    else if (c.type === 'status') { const filled = s.rows.filter(r => r.c[c.id]).length, done = s.rows.filter(r => r.c[c.id] === 'Erledigt').length; v = filled ? `${done}/${filled} erledigt` : ''; }
+    h += `<td style="${c.type==='number'?'text-align:right':''}">${v}</td>`;
+  });
+  f.innerHTML = h + '<td></td></tr>';
+}
+
+function pVal(el) { return el.type === 'checkbox' ? el.checked : el.value; }
+function pBind(tbl) {
+  const set = el => {
+    const s = sheet(), r = +el.dataset.r, c = +el.dataset.c, col = s.cols[c]; if (!col || !s.rows[r]) return;
+    s.rows[r].c[col.id] = pVal(el);
+    if (col.type === 'status') el.dataset.v = el.value;
+    el.closest('tr').classList.toggle('pdone', pRowDone(s.rows[r], s));
+    savePlan(); renderPlanFoot();
+  };
+  tbl.addEventListener('input', e => { if (e.target.classList.contains('pc')) set(e.target); });
+  tbl.addEventListener('keydown', e => {
+    const el = e.target; if (!el.classList.contains('pc')) return;
+    const r = +el.dataset.r, c = +el.dataset.c, s = sheet();
+    const textLike = el.tagName === 'INPUT' && el.type === 'text';
+    const atStart = !textLike || (el.selectionStart === 0 && el.selectionEnd === 0);
+    const atEnd = !textLike || (el.selectionStart === el.value.length && el.selectionEnd === el.value.length);
+    const vNav = textLike || el.type === 'checkbox';
+    let to = null;
+    if (e.key === 'Enter') { if (el.type === 'checkbox') { el.checked = !el.checked; set(el); e.preventDefault(); return; } to = [r + 1, c]; if (r + 1 >= s.rows.length) { pAddRow(false); renderPlanView(); } }
+    else if (e.key === 'ArrowDown' && vNav) to = [r + 1, c];
+    else if (e.key === 'ArrowUp' && vNav) to = [r - 1, c];
+    else if (e.key === 'ArrowLeft' && atStart) to = [r, c - 1];
+    else if (e.key === 'ArrowRight' && atEnd) to = [r, c + 1];
+    if (to) { e.preventDefault(); pFocus(to[0], to[1]); }
+  });
+  tbl.addEventListener('paste', e => {
+    const el = e.target; if (!el.classList.contains('pc')) return;
+    const txt = (e.clipboardData || window.clipboardData).getData('text');
+    if (!/[\t\n]/.test(txt.replace(/\r?\n$/, ''))) return;
+    e.preventDefault();
+    const s = sheet(), r0 = +el.dataset.r, c0 = +el.dataset.c;
+    const grid = txt.replace(/\r/g, '').replace(/\n$/, '').split('\n').map(l => l.split('\t'));
+    grid.forEach((line, i) => {
+      while (s.rows.length <= r0 + i) s.rows.push({id:newId(), c:{}});
+      line.forEach((raw, j) => { const col = s.cols[c0 + j]; if (col) s.rows[r0 + i].c[col.id] = pParse(col, raw.trim()); });
+    });
+    savePlan(); renderPlanView(); pFocus(r0, c0);
+  });
+}
+function pParse(col, raw) {
+  if (col.type === 'check') return /^(1|x|ja|yes|true|wahr|✓|✔)$/i.test(raw);
+  if (col.type === 'date') {
+    const m = raw.match(/^(\d{1,2})\.(\d{1,2})\.(\d{2,4})$/);
+    if (m) { const y = m[3].length === 2 ? '20' + m[3] : m[3]; return `${y}-${m[2].padStart(2,'0')}-${m[1].padStart(2,'0')}`; }
+    return /^\d{4}-\d{2}-\d{2}$/.test(raw) ? raw : '';
+  }
+  if (col.type === 'status') return PSTATUS.find(s => s.toLowerCase() === raw.toLowerCase()) || (raw ? raw : '');
+  return raw;
+}
+function pFocus(r, c) {
+  const el = document.querySelector(`#pTable .pc[data-r="${r}"][data-c="${c}"]`);
+  if (!el) return; el.focus();
+  if (el.tagName === 'INPUT' && el.type === 'text') el.select();
+}
+
+function pAddRow(rerender) { ensurePlan(); sheet().rows.push({id:newId(), c:{}}); savePlan(); if (rerender) { renderPlanView(); pFocus(sheet().rows.length - 1, 0); const w = document.querySelector('.pwrap'); if (w) w.scrollTop = w.scrollHeight; } }
+function pDelRow(r) {
+  const s = sheet(), row = s.rows[r]; if (!row) return;
+  if (Object.values(row.c).some(v => v !== '' && v !== false) && !confirm(`Zeile ${r + 1} löschen?`)) return;
+  s.rows.splice(r, 1); savePlan(); renderPlanView();
+}
+function pDropRow(to, el) {
+  el.classList.remove('dragover'); const s = sheet();
+  if (pDragRow === null || pDragRow === to) { pDragRow = null; return; }
+  const [row] = s.rows.splice(pDragRow, 1); s.rows.splice(to, 0, row); pDragRow = null; savePlan(); renderPlanView();
+}
+function pAddCol(at) { sheet().cols.splice(at, 0, {id:newId(), name:'Neue Spalte', type:'text', width:150}); savePlan(); closePMenu(); renderPlanView(); setTimeout(() => { const ins = document.querySelectorAll('#pTable .phin'); if (ins[at]) { ins[at].focus(); ins[at].select(); } }, 30); }
+function pDelCol(i) {
+  const s = sheet(), col = s.cols[i]; if (!col) return;
+  if (s.cols.length <= 1) { alert('Die letzte Spalte kann nicht gelöscht werden.'); return; }
+  if (s.rows.some(r => r.c[col.id] !== undefined && r.c[col.id] !== '' && r.c[col.id] !== false) && !confirm(`Spalte „${col.name}“ mit Inhalt löschen?`)) return;
+  s.cols.splice(i, 1); s.rows.forEach(r => delete r.c[col.id]); savePlan(); closePMenu(); renderPlanView();
+}
+function pRenameCol(i, v) { const col = sheet().cols[i]; if (col && v.trim()) { col.name = v.trim(); savePlan(); } }
+function pSetType(i, type) {
+  const s = sheet(), col = s.cols[i]; if (!col) return; col.type = type;
+  s.rows.forEach(r => { const v = r.c[col.id]; if (v === undefined) return; r.c[col.id] = type === 'check' ? (v === true || pParse(col, String(v))) : (typeof v === 'boolean' ? (v ? 'x' : '') : pParse(col, String(v))); });
+  savePlan(); closePMenu(); renderPlanView();
+}
+function pSort(i, dir) {
+  const s = sheet(), col = s.cols[i]; if (!col) return;
+  const empty = v => v === undefined || v === '' || v === false;
+  const key = v => col.type === 'number' ? (parseFloat(String(v).replace(',', '.')) || 0) : col.type === 'status' ? PSTATUS.indexOf(v) : col.type === 'check' ? (v ? 1 : 0) : String(v);
+  s.rows.sort((a, b) => {
+    const va = a.c[col.id], vb = b.c[col.id];
+    if (empty(va) && empty(vb)) return 0; if (empty(va)) return 1; if (empty(vb)) return -1;
+    const ka = key(va), kb = key(vb);
+    return (typeof ka === 'number' ? ka - kb : ka.localeCompare(kb, 'de', {numeric:true})) * dir;
+  });
+  savePlan(); closePMenu(); renderPlanView();
+}
+
+function closePMenu() { document.querySelector('.pmenu')?.remove(); }
+function pColMenu(i, ev) {
+  ev.stopPropagation(); closePMenu();
+  const col = sheet().cols[i], r = ev.currentTarget.getBoundingClientRect();
+  const d = document.createElement('div'); d.className = 'pmenu';
+  d.innerHTML = `<div class="pml">Spaltentyp</div>
+    <select class="tpsel" onchange="pSetType(${i},this.value)">${Object.entries(PTYPES).map(([k, l]) => `<option value="${k}"${k===col.type?' selected':''}>${l}</option>`).join('')}</select>
+    <button onclick="pSort(${i},1)">Sortieren A → Z</button>
+    <button onclick="pSort(${i},-1)">Sortieren Z → A</button>
+    <button onclick="pAddCol(${i})">Spalte links einfügen</button>
+    <button onclick="pAddCol(${i + 1})">Spalte rechts einfügen</button>
+    <button class="danger" onclick="pDelCol(${i})">Spalte löschen</button>`;
+  document.body.appendChild(d);
+  const w = d.offsetWidth; d.style.left = Math.max(8, Math.min(window.innerWidth - w - 8, r.right - w)) + 'px'; d.style.top = (r.bottom + 4) + 'px';
+  d.addEventListener('click', e => e.stopPropagation());
+}
+document.addEventListener('click', closePMenu);
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closePMenu(); });
+
+function pResizeStart(i, ev) {
+  ev.preventDefault(); const th = ev.target.closest('th');
+  pResizing = {i, x:ev.clientX, w:sheet().cols[i].width || 140, th, tbl:$('pTable'), tw:$('pTable').offsetWidth};
+  document.addEventListener('mousemove', pResizeMove); document.addEventListener('mouseup', pResizeEnd);
+}
+function pResizeMove(e) {
+  if (!pResizing) return; const {i, x, w, th, tbl, tw} = pResizing;
+  const nw = Math.max(50, w + e.clientX - x); sheet().cols[i].width = nw;
+  th.style.width = nw + 'px'; tbl.style.width = (tw + nw - w) + 'px';
+}
+function pResizeEnd() { pResizing = null; document.removeEventListener('mousemove', pResizeMove); document.removeEventListener('mouseup', pResizeEnd); savePlan(); }
+
+function pSwitch(i) { plan.active = i; savePlan(); renderPlanView(); }
+function pAddSheet() { const name = prompt('Name des neuen Blatts:', 'Woche ' + (plan.sheets.length + 1)); if (!name || !name.trim()) return; plan.sheets.push(newSheet(name.trim())); plan.active = plan.sheets.length - 1; savePlan(); renderPlanView(); }
+function pRenameSheet(i) { const sh = plan.sheets[i]; const name = prompt('Blatt umbenennen:', sh.name); if (!name || !name.trim()) return; sh.name = name.trim(); savePlan(); renderPlanView(); }
+function pDelSheet() {
+  if (plan.sheets.length <= 1) { alert('Das letzte Blatt kann nicht gelöscht werden.'); return; }
+  if (!confirm(`Blatt „${sheet().name}“ löschen?`)) return;
+  plan.sheets.splice(plan.active, 1); plan.active = Math.max(0, plan.active - 1); savePlan(); renderPlanView();
+}
+function pExportCsv() {
+  const s = sheet(), q = v => { const t = String(v ?? ''); return /[";\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+  const fmt = (col, v) => col.type === 'check' ? (v ? 'x' : '') : col.type === 'date' && v ? v.split('-').reverse().join('.') : (v ?? '');
+  const lines = [s.cols.map(c => q(c.name)).join(';')];
+  s.rows.filter(r => Object.values(r.c).some(v => v !== '' && v !== false)).forEach(r => lines.push(s.cols.map(c => q(fmt(c, r.c[c.id]))).join(';')));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], {type:'text/csv;charset=utf-8'});
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Lernplan – ${s.name}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
 // ── Drag resize ────────────────────────────────────────────────────────────────
