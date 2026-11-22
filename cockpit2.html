@@ -175,7 +175,7 @@
   body.incal #calView{display:flex}
   .cvhd{display:flex;justify-content:space-between;align-items:baseline}
   .cvhd h2{font-size:22px;font-weight:600;letter-spacing:-0.01em}
-  body.inmod #homeView,body.inplan #homeView,body.incal #homeView{display:none}
+  body.inmod #homeView,body.inplan #homeView,body.incal #homeView,body.intime #homeView{display:none}
   #tabbar{display:none}
 
   /* Module page */
@@ -284,6 +284,96 @@
   .pmenu button.danger{color:var(--danger)}
   .pmenu .pml{font-size:9px;color:var(--t3);letter-spacing:0.06em;text-transform:uppercase;padding:4px 8px 4px}
 
+  /* Zeit-Tracker (Sidebar, Handy-Startseite, Zeit-Seite) */
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.35}}
+  .trk{margin:16px 10px 0}
+  .trk-sel{width:100%;margin-bottom:5px;height:26px;min-width:0}
+  .trk-row{display:flex;gap:5px}
+  .trk-row .trk-sel{flex:1;margin-bottom:0}
+  .trk-go{background:var(--accent);border:none;color:#fff;border-radius:5px;padding:0 10px;height:26px;font-size:11px;cursor:pointer;font-family:var(--font);white-space:nowrap}
+  .trk-run{background:var(--s1);border:1px solid var(--b);border-radius:9px;padding:9px 10px 8px}
+  .trk-top{display:flex;align-items:center;gap:7px}
+  .trk-live{animation:pulse 2s ease-in-out infinite}
+  .trk-name{flex:1;min-width:0;font-size:12px;color:var(--t1);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trk-task{font-size:11px;color:var(--t2);margin:3px 0 0 14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .trk-clock{font-size:22px;font-weight:300;letter-spacing:0.02em;font-variant-numeric:tabular-nums;margin:5px 0 1px 14px}
+  .trk-meta{font-size:10px;color:var(--t3);margin-left:14px}
+  .trk-stop{background:none;border:1px solid var(--bm);color:var(--t2);border-radius:5px;width:24px;height:24px;cursor:pointer;font-size:9px;line-height:1;flex-shrink:0}
+  .trk-stop:hover{border-color:rgba(255,69,58,0.5);color:var(--danger)}
+  .trk-sum{display:flex;justify-content:space-between;font-size:10px;color:var(--t3);text-decoration:none;margin-top:7px;padding:0 1px}
+  .trk-sum:hover{color:var(--t2)}
+  .trk-home,.trk-page{display:none}
+  #tToday{color:var(--t3)}
+  .tplay{background:none;border:none;color:var(--t3);cursor:pointer;font-size:9px;line-height:1;padding:4px 5px;border-radius:4px;opacity:0;transition:opacity 0.15s}
+  .nitem:hover .tplay,.tplay:focus-visible{opacity:1}
+  .tplay:hover{color:var(--accent)}
+  .tplay.on{opacity:1;color:var(--accent)}
+  .mtime{font-size:12px;color:var(--t3);margin-left:4px}
+  .bsm.on{border-color:var(--accent);color:var(--accent)}
+
+  /* Seite «Zeit» */
+  #timeView{display:none;flex:1;min-height:0;flex-direction:column;overflow-y:auto;padding-bottom:12px}
+  body.intime #timeView{display:flex}
+  .wknav{display:flex;align-items:center;gap:6px;margin-left:auto}
+  .wklbl{font-size:12px;color:var(--t2);min-width:180px;text-align:center;font-variant-numeric:tabular-nums}
+  .tstats{display:flex;gap:10px;margin:8px 0 14px;flex-shrink:0}
+  .tstat{flex:1;max-width:220px;background:var(--s1);border:1px solid var(--b);border-radius:10px;padding:12px 16px}
+  .tstat-l{font-size:11px;color:var(--t3)}
+  .tstat-v{font-size:24px;font-weight:600;letter-spacing:-0.01em;margin-top:3px}
+  .tstat-d{font-size:11px;color:var(--t2);margin-top:2px}
+  .tgrid{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:14px;margin-bottom:14px;flex-shrink:0}
+  .tcard{background:var(--s1);border:1px solid var(--b);border-radius:10px;padding:14px 16px;flex-shrink:0}
+  .tch{position:relative;margin:18px 0 0 34px}
+  .tgl{position:absolute;left:0;right:0;height:1px;background:var(--b)}
+  .tgl span{position:absolute;right:calc(100% + 7px);top:-6px;font-size:10px;color:var(--t3);white-space:nowrap;font-variant-numeric:tabular-nums}
+  .tcols{position:absolute;inset:0;display:flex}
+  .tcol{flex:1;display:flex;flex-direction:column;justify-content:flex-end;align-items:center;border-radius:6px;outline:none;cursor:default;position:relative}
+  .tcol:hover,.tcol:focus-visible{background:rgba(255,255,255,0.035)}
+  .tstack{width:24px;max-width:60%;display:flex;flex-direction:column-reverse;gap:2px}
+  .tseg{width:100%}
+  .tseg:last-child{border-radius:4px 4px 0 0}
+  .tcol:hover .tseg,.tcol:focus-visible .tseg{filter:brightness(1.15)}
+  .tcap{font-size:10px;color:var(--t2);margin-bottom:4px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .tempty{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--t3)}
+  .tdays{display:flex;margin:6px 0 0 34px}
+  .tdays div{flex:1;text-align:center;font-size:11px;color:var(--t3)}
+  .tdays span{margin-left:3px;font-size:10px}
+  .tdays .today{color:var(--t1);font-weight:600}
+  .tleg{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:14px;font-size:11px;color:var(--t2)}
+  .tleg i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:6px}
+  .ttip{position:fixed;z-index:800;display:none;background:var(--s2);border:1px solid var(--bm);border-radius:8px;padding:8px 11px;font-size:11px;pointer-events:none;box-shadow:0 10px 30px rgba(0,0,0,0.5);min-width:150px}
+  .ttip.on{display:block}
+  .ttip-h{color:var(--t2);margin-bottom:4px}
+  .ttip-n{color:var(--t3)}
+  .ttr{display:flex;align-items:center;gap:7px;line-height:1.75}
+  .ttr i{width:10px;height:2px;border-radius:1px;flex-shrink:0}
+  .ttr b{color:var(--t1);font-weight:600;font-variant-numeric:tabular-nums;min-width:44px}
+  .ttr span{color:var(--t2)}
+  .tmrow{display:grid;grid-template-columns:minmax(0,1fr) auto 38px;gap:5px 10px;align-items:center;padding:8px 0;border-bottom:1px solid var(--b);font-size:12px}
+  .tmname{display:flex;align-items:center;gap:8px;color:var(--t1);text-decoration:none;overflow:hidden;white-space:nowrap}
+  a.tmname:hover{text-decoration:underline;text-underline-offset:2px}
+  .tmdur{color:var(--t1);font-variant-numeric:tabular-nums}
+  .tmpct{color:var(--t3);text-align:right;font-variant-numeric:tabular-nums}
+  .tmbar{grid-column:1/-1;height:4px;background:var(--s3);border-radius:2px;overflow:hidden}
+  .tmbar div{height:100%;border-radius:2px}
+  .tday-h{display:flex;justify-content:space-between;font-size:10px;letter-spacing:0.08em;text-transform:uppercase;color:var(--t3);margin:16px 0 2px}
+  .tday-h span:last-child{text-transform:none;letter-spacing:0;font-size:11px;font-variant-numeric:tabular-nums}
+  .tent{display:flex;align-items:center;gap:12px;padding:8px 6px;margin:0 -6px;border-bottom:1px solid var(--b);font-size:12px;cursor:pointer;border-radius:5px}
+  .tent:hover{background:var(--s2)}
+  .tent.live{cursor:default}
+  .tent.live:hover{background:none}
+  .tent-t{width:96px;color:var(--t2);font-variant-numeric:tabular-nums;flex-shrink:0}
+  .tent-m{display:flex;align-items:center;gap:7px;color:var(--t1);width:150px;flex-shrink:0;overflow:hidden;white-space:nowrap}
+  .tent-x{flex:1;min-width:0;color:var(--t3);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .tent-d{color:var(--t1);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .trk-live-lbl{color:var(--accent);font-size:10px;margin-right:4px}
+  .tent .tdel{visibility:hidden}
+  .tent:hover .tdel{visibility:visible}
+  .tent-form{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:8px 0;border-bottom:1px solid var(--b)}
+  .tent-form .ql-in,.tent-form .tpsel{height:28px;font-size:12px;color-scheme:dark}
+  .tent-txt{flex:1;min-width:140px}
+  .tent-dash{color:var(--t3)}
+
   /* Phone layout — only applies below 760px, desktop unchanged */
   @media (max-width:760px){
     .mcols{flex-direction:column;overflow:visible}
@@ -326,6 +416,28 @@
     #tabbar .on{color:var(--accent)}
     .sc{width:100%;padding:24px 18px}
     #settingsModal{width:calc(100vw - 32px)}
+    .trk-home{display:block;margin:16px 0 0}
+    .trk-page{display:block;margin:0 0 14px}
+    .trk-sel,.trk-go{height:36px;font-size:15px!important}
+    .trk-clock{font-size:26px}
+    .trk-stop{width:34px;height:34px;font-size:12px}
+    .trk-sum{font-size:12px}
+    .tplay{opacity:0.75;font-size:13px;padding:6px 8px}
+    #timeView{overflow:visible}
+    .wknav{margin-left:0;width:100%}
+    .wklbl{flex:1;min-width:0}
+    .tstats{gap:8px}
+    .tstat{min-width:0;max-width:none;padding:10px 11px}
+    .tstat-v{font-size:19px}
+    .tstat-d{font-size:10px}
+    .tgrid{grid-template-columns:minmax(0,1fr)}
+    .tcard{padding:12px}
+    .tent{flex-wrap:wrap;gap:4px 10px;padding:10px 6px}
+    .tent-t{width:auto}
+    .tent-m{width:auto;flex:1}
+    .tent-x{order:5;flex-basis:100%}
+    .tent .tdel{visibility:visible}
+    .tent-form .ql-in,.tent-form .tpsel{height:36px;font-size:16px}
   }
 
 </style>
@@ -363,6 +475,8 @@
     <a class="nav" data-v="home" href="#/">◉ Heute</a>
     <a class="nav" data-v="cal" href="#/kalender">▤ Kalender</a>
     <a class="nav" data-v="plan" href="#/lernplan">▦ Lernplan</a>
+    <a class="nav" data-v="time" href="#/zeit">◷ Zeit</a>
+    <div class="trk" id="trkSide"></div>
     <div class="slbl">Module</div>
     <div class="mlist" id="mRow"></div>
     <div class="slbl">Links</div>
@@ -387,8 +501,9 @@
       <section id="focus">
         <div id="dlbl"></div>
         <h1 id="greet"></h1>
-        <div class="hsub"><b id="tCount">0 Aufgaben</b> offen</div>
+        <div class="hsub"><b id="tCount">0 Aufgaben</b> offen<span id="tToday"></span></div>
         <div class="mchips" id="mChips"></div>
+        <div class="trk trk-home"></div>
         <div class="tinrow2">
           <span class="tplus">+</span>
           <input type="text" id="tIn" class="tin2" placeholder="Neue Aufgabe …" onkeydown="if(event.key==='Enter')todoAdd()">
@@ -426,6 +541,9 @@
     <!-- Lernplan (wird per #/lernplan angezeigt) -->
     <div id="planView"></div>
 
+    <!-- Zeit-Tracker: Wochenübersicht (wird per #/zeit angezeigt) -->
+    <div id="timeView"></div>
+
   </main>
 
   <!-- Handy: Tab-Leiste unten -->
@@ -433,10 +551,13 @@
     <a data-v="home" href="#/"><span>◉</span>Heute</a>
     <a data-v="cal" href="#/kalender"><span>▤</span>Kalender</a>
     <a data-v="plan" href="#/lernplan"><span>▦</span>Lernplan</a>
+    <a data-v="time" href="#/zeit"><span>◷</span>Zeit</a>
     <button onclick="openSettings()"><span>⚙</span>Mehr</button>
   </nav>
 
 </div>
+
+<div id="ttip" class="ttip" role="tooltip"></div>
 
 <!-- Settings Modal -->
 <div id="settingsOverlay" onclick="if(event.target===this)closeSettings()">
@@ -492,7 +613,7 @@ const dataRepo = () => localStorage.getItem('dash_repo') || DEFAULT_REPO;
 const repoUrl = () => `https://api.github.com/repos/${dataRepo()}/contents/${DATA_FILE}`;
 const b64enc = s => { let o=''; new TextEncoder().encode(s).forEach(c => o += String.fromCharCode(c)); return btoa(o); };
 const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
-const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules, links: quickLinks, ...(plan ? {plan} : {})});
+const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules, links: quickLinks, time: tlog, ...(plan ? {plan} : {})});
 
 // Einheitliche Form der Daten, auch für ältere Stände. Aufgaben, die früher direkt im
 // Modul lagen (m.todos), wandern in die gemeinsame Aufgabenliste (mit Feld mod).
@@ -508,13 +629,17 @@ function normPayload(raw) {
     return normMod(m);
   });
   const out = {todos, notepad: typeof d.notepad === 'string' ? d.notepad : '', modules, links: Array.isArray(d.links) ? d.links : []};
+  const tl = isObj(d.time) ? d.time : {};
+  out.time = {running: isObj(tl.running) && Number.isFinite(tl.running.start) ? tl.running : null,
+    entries: (Array.isArray(tl.entries) ? tl.entries : []).filter(e => isObj(e) && Number.isFinite(e.start) && Number.isFinite(e.end) && e.end > e.start)};
   if (d.plan && Array.isArray(d.plan.sheets) && d.plan.sheets.length) out.plan = d.plan;
   return out;
 }
 
 // Übernimmt einen (normalisierten) Stand in die App und in den Browser-Speicher
 function setState(d) {
-  todos = d.todos; modules = d.modules; quickLinks = d.links; plan = d.plan || null;
+  todos = d.todos; modules = d.modules; quickLinks = d.links; plan = d.plan || null; tlog = d.time;
+  localStorage.setItem('dash_time', JSON.stringify(tlog));
   localStorage.setItem('dash_todos', JSON.stringify(todos));
   localStorage.setItem('dash_modules', JSON.stringify(modules));
   localStorage.setItem('dash_ql', JSON.stringify(quickLinks));
@@ -525,7 +650,7 @@ function setState(d) {
 function loadLocalState() {
   const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
   setState(normPayload({todos: get('dash_todos', []), notepad: localStorage.getItem('dash_notepad') || '',
-    modules: get('dash_modules', []), links: get('dash_ql', []), plan: get('dash_plan', null)}));
+    modules: get('dash_modules', []), links: get('dash_ql', []), plan: get('dash_plan', null), time: get('dash_time', null)}));
 }
 
 function loadBase() {
@@ -634,6 +759,8 @@ function renderSynced() {
   if (m && ae && ae.id === 'mNotes') syncField(ae, m.notes);
   if (m && ae && ae.classList.contains('tpta')) { const t = m.topics.find(t => t.id === ae.dataset.id); if (t) syncField(ae, t.details || ''); }
   refreshModules();
+  renderTracker(); trkTitle(); if (m) renderMTime();
+  if (curView === 'time' && !(ae && ae.closest && ae.closest('#timeView'))) renderTimeView();
 }
 
 // Liest data.json. Rückgabe: {state:'ok',data,sha} | {state:'missing'} (404) | {state:'denied'} (401/403) | {state:'error'}
@@ -644,7 +771,13 @@ async function repoRead(pat) {
     if (r.status === 401 || r.status === 403) return {state:'denied'};
     if (!r.ok) return {state:'error'};
     const d = await r.json();
-    return {state:'ok', sha: d.sha, data: JSON.parse(b64dec(d.content || '') || '{}')};
+    let txt = d.content ? b64dec(d.content) : '';
+    if (!txt && d.size > 0) { // ab 1 MB liefert die API den Inhalt nicht mehr mit: roh nachladen
+      const rr = await fetch(repoUrl(), {headers: {...ghHeaders(pat), 'Accept':'application/vnd.github.raw'}, cache: 'no-store'});
+      if (!rr.ok) return {state:'error'};
+      txt = await rr.text();
+    }
+    return {state:'ok', sha: d.sha, data: JSON.parse(txt || '{}')};
   } catch { return {state:'error'}; }
 }
 
@@ -778,7 +911,7 @@ const todoById = id => todos.find(t => String(t.id) === String(id));
 // Nach jeder Änderung: speichern und überall neu zeichnen (Startseite, Modulseite, Zähler in der Sidebar)
 function todosChanged(){localStorage.setItem('dash_todos',JSON.stringify(todos));scheduleSave();renderTodos();if(cur())renderMTodos();renderModRow();}
 function todoAdd(){const inp=$('tIn'),text=inp.value.trim();if(!text)return;const mod=$('tMod').value;todos.push({id:Date.now(),text,done:false,priority:$('tPrio').value,...(mod?{mod}:{})});inp.value='';todosChanged();}
-function todoToggle(id){const t=todoById(id);if(t)t.done=!t.done;todosChanged();}
+function todoToggle(id){const t=todoById(id);if(t)t.done=!t.done;if(t&&t.done&&trkIsTodo(t.id))trkStop();todosChanged();}
 function todoDel(id){todos=todos.filter(t=>String(t.id)!==String(id));todosChanged();}
 function clearDoneTodos(){todos=todos.filter(t=>!t.done);todosChanged();}
 
@@ -829,6 +962,7 @@ function todoRowsHtml(list,onMod,clr){
       <span class="tptag" style="color:${prioCol(t.priority)}">${esc(t.priority||'')}</span>`
         :`<span class="ttx" ondblclick="editTodo(${id},this)">${esc(t.text)}</span>
       ${todoTag(t)}`}
+      <button class="tplay${trkIsTodo(t.id)?' on':''}" onclick="trkToggleTodo(${id})" title="${trkIsTodo(t.id)?'Zeit stoppen':'Zeit für diese Aufgabe starten'}">${trkIsTodo(t.id)?'■':'▶'}</button>
       <button class="tdel" onclick="todoDel(${id})">×</button>
     </div>`;
   });
@@ -991,6 +1125,7 @@ function renderModRow() {
   const sel = $('tMod'), v = sel.value;
   sel.innerHTML = '<option value="">Modul</option>' + modules.map(m => `<option value="${m.id}">${esc(m.name)}</option>`).join('');
   sel.value = modById(v) ? v : '';
+  renderTracker();
 }
 
 function modAdd() {
@@ -1005,24 +1140,26 @@ function modDrop(to) {
   dragModSrc = null; saveModules(); renderModRow();
 }
 
-// Routing: #/m/<id> = Modulseite, #/lernplan = Lernplan, #/kalender = Kalender, alles andere = Startseite
+// Routing: #/m/<id> = Modulseite, #/lernplan = Lernplan, #/kalender = Kalender, #/zeit = Zeit, alles andere = Startseite
 let curView = 'home';
 function route() {
   const hit = location.hash.match(/^#\/m\/([\w-]+)/);
   const m = hit && modById(hit[1]);
   if (hit && !m) history.replaceState(null, '', location.pathname + location.search);
-  const view = m ? 'm:' + m.id : location.hash === '#/lernplan' ? 'plan' : location.hash === '#/kalender' ? 'cal' : 'home';
+  const view = m ? 'm:' + m.id : location.hash === '#/lernplan' ? 'plan' : location.hash === '#/kalender' ? 'cal' : location.hash === '#/zeit' ? 'time' : 'home';
   const changed = curView !== view;
   curView = view; curMod = m ? m.id : null;
   document.body.classList.toggle('inmod', !!curMod);
   document.body.classList.toggle('inplan', view === 'plan');
   document.body.classList.toggle('incal', view === 'cal');
+  document.body.classList.toggle('intime', view === 'time');
   document.querySelectorAll('[data-v]').forEach(a => a.classList.toggle('on', a.dataset.v === view));
   if (view === 'cal') loadBigCal();
-  if (changed) { mLinkAdding = false; mDateAdding = false; mInfoEdit = false; tpOpen.clear(); closePMenu(); }
+  if (changed) { mLinkAdding = false; mDateAdding = false; mInfoEdit = false; tpOpen.clear(); closePMenu(); tEdit = null; hideTip(); }
   renderModRow();
   if (curMod) renderModView();
   if (view === 'plan') renderPlanView();
+  if (view === 'time') renderTimeView();
   if (changed) window.scrollTo(0, 0);
 }
 window.addEventListener('hashchange', route);
@@ -1051,7 +1188,9 @@ function renderModView() {
     <div class="mhead">
       <span class="m-dot big" style="background:${m.color}" onclick="modCycleColor()" title="Farbe wechseln"></span>
       <span class="mtitle" id="mTitle" ondblclick="modRename()" title="Doppelklick zum Umbenennen">${esc(m.name)}</span>
+      <span class="mtime" id="mTime"></span>
       <span class="mhead-sp"></span>
+      <button class="bsm" id="mTrk" onclick="trkModToggle()"></button>
       <button class="bsm" onclick="modRename()">Umbenennen</button>
       <button class="bsm mdel" onclick="modDelete()">Löschen</button>
     </div>
@@ -1092,7 +1231,7 @@ function renderModView() {
       </div>
     </div>`;
   $('mNotes').value = m.notes;
-  renderMInfo(); renderMLinks(); renderMDates(); renderTopics(); renderMTodos();
+  renderMInfo(); renderMLinks(); renderMDates(); renderTopics(); renderMTodos(); renderMTime();
 }
 
 // Fach- und Prüfungsinfos
@@ -1528,9 +1667,284 @@ function pExportCsv() {
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `Lernplan – ${s.name}.csv`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
 
+// ── Zeit-Tracker ───────────────────────────────────────────────────────────────
+// tlog = {running: {start, mod, todo?, text?} | null, entries: [{id, mod, todo?, text?, start, end}]}
+// Zeiten in ms seit 1970. mod = Modul-ID ('' = ohne Modul). Wird mit data.json synchronisiert,
+// ein laufender Timer ist also auch auf dem anderen Gerät sichtbar und dort stoppbar.
+let tlog = {running: null, entries: []};
+let trkSel = (()=>{try{const s=JSON.parse(localStorage.getItem('dash_trk_sel'));return s&&typeof s==='object'?s:{mod:'',todo:''};}catch{return{mod:'',todo:''};}})();
+let wkOff = 0, tEdit = null, trkLastMin = -1;
+const NOMOD_COL = '#8e8e93';
+const modInfo = id => !id ? {id:'', name:'Ohne Modul', color:NOMOD_COL} : modById(id) || {id, name:'Gelöschtes Modul', color:'#636366'};
+const hhmm = ms => new Date(ms).toLocaleTimeString('de-CH', {hour:'2-digit', minute:'2-digit'});
+function fmtDur(ms) { const m = Math.round(ms / 60000); return m < 60 ? m + ' min' : Math.floor(m / 60) + ' h' + (m % 60 ? ' ' + String(m % 60).padStart(2, '0') : ''); }
+function fmtClock(ms) { const s = Math.max(0, Math.floor(ms / 1000)); return Math.floor(s / 3600) + ':' + String(Math.floor(s / 60) % 60).padStart(2, '0') + ':' + String(s % 60).padStart(2, '0'); }
+const trkIsTodo = id => !!tlog.running && tlog.running.todo != null && String(tlog.running.todo) === String(id);
+
+// Woche ab Montag; off = Wochen relativ zu dieser Woche
+function weekStart(off) { const d = new Date(); d.setHours(0,0,0,0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * off); return d; }
+function dayStart(base, plus) { const d = new Date(base); d.setHours(0,0,0,0); d.setDate(d.getDate() + plus); return +d; }
+function isoWeek(d) { const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 86400000 + 1) / 7); }
+// Alle Zeitblöcke, inkl. des laufenden Timers bis jetzt
+function timeBlocks() {
+  const b = tlog.entries.slice(), r = tlog.running;
+  if (r) b.push({id:'run', mod:r.mod || '', todo:r.todo, text:r.text, start:r.start, end:Math.max(r.start, Date.now()), live:true});
+  return b;
+}
+// Zeit pro Modul im Zeitraum [a, z) – Blöcke über Mitternacht werden anteilig gezählt
+function timeByMod(a, z, blocks = timeBlocks()) {
+  const m = new Map();
+  blocks.forEach(e => { const ov = Math.min(e.end, z) - Math.max(e.start, a); if (ov > 0) m.set(e.mod || '', (m.get(e.mod || '') || 0) + ov); });
+  return m;
+}
+const sumMap = m => [...m.values()].reduce((a, b) => a + b, 0);
+// Feste Reihenfolge wie in der Sidebar (Farbe gehört zum Modul, nicht zum Rang); ohne Modul zuletzt
+const modOrder = map => [...modules.map(m => m.id).filter(id => map.has(id)), ...[...map.keys()].filter(k => k && !modById(k)), ...(map.has('') ? [''] : [])];
+
+function saveTime() { localStorage.setItem('dash_time', JSON.stringify(tlog)); scheduleSave(); }
+function trkChanged() {
+  saveTime(); renderTracker(true); renderTodos(); if (cur()) { renderMTodos(); renderMTime(); }
+  if (curView === 'time') renderTimeView();
+  trkTitle();
+}
+// Laufenden Timer als Eintrag abschliessen (unter einer Minute wird verworfen).
+// Die id hängt am Startzeitpunkt: stoppen zwei Geräte denselben Timer, entsteht nur ein Eintrag.
+function trkClose(now) {
+  const r = tlog.running; if (!r) return;
+  if (now - r.start >= 60000) tlog.entries.push({id:'e' + r.start.toString(36), mod:r.mod || '', ...(r.todo != null ? {todo:r.todo, text:r.text} : {}), start:r.start, end:now});
+  tlog.running = null;
+}
+function trkStart(mod, todoId) {
+  const now = Date.now(), t = todoId != null && todoId !== '' ? todoById(todoId) : null;
+  trkClose(now);
+  tlog.running = {start:now, mod:(t ? t.mod : mod) || '', ...(t ? {todo:t.id, text:t.text} : {})};
+  trkChanged();
+}
+function trkStop() { trkClose(Date.now()); trkChanged(); }
+function trkToggleTodo(id) { if (trkIsTodo(id)) trkStop(); else trkStart(null, id); }
+function trkModToggle() { const m = cur(); if (!m) return; if (tlog.running && tlog.running.mod === m.id) trkStop(); else trkStart(m.id, null); }
+function trkSelMod(v) { trkSel = {mod:v, todo:''}; try { localStorage.setItem('dash_trk_sel', JSON.stringify(trkSel)); } catch {} renderTracker(true); }
+function trkSelTodo(v) { trkSel.todo = v; try { localStorage.setItem('dash_trk_sel', JSON.stringify(trkSel)); } catch {} }
+
+// Tracker-Kästchen (Sidebar; auf dem Handy auf der Startseite und der Zeit-Seite)
+function renderTracker(force) {
+  const ae = document.activeElement;
+  if (!force && ae && ae.closest && ae.closest('.trk')) return; // Auswahl nicht unter den Fingern wegziehen
+  const r = tlog.running; let h;
+  if (r) {
+    const m = modInfo(r.mod);
+    h = `<div class="trk-run">
+      <div class="trk-top"><span class="m-dot trk-live" style="background:${m.color}"></span><span class="trk-name">${esc(m.name)}</span><button class="trk-stop" onclick="trkStop()" title="Stoppen">■</button></div>
+      ${r.text ? `<div class="trk-task">${esc(r.text)}</div>` : ''}
+      <div class="trk-clock">${fmtClock(Date.now() - r.start)}</div>
+      <div class="trk-meta">läuft seit ${hhmm(r.start)}</div>
+    </div>`;
+  } else {
+    if (trkSel.mod && !modById(trkSel.mod)) trkSel.mod = '';
+    const open = todos.filter(t => !t.done && (t.mod || '') === trkSel.mod);
+    if (!open.some(t => String(t.id) === String(trkSel.todo))) trkSel.todo = '';
+    h = `<select class="tsel trk-sel" onchange="trkSelMod(this.value)" title="Woran arbeitest du?">
+        <option value="">Ohne Modul</option>${modules.map(m => `<option value="${escA(m.id)}"${m.id === trkSel.mod ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select>
+      <div class="trk-row"><select class="tsel trk-sel" onchange="trkSelTodo(this.value)" title="Aufgabe (optional)"><option value="">Aufgabe (optional)</option>${open.map(t => `<option value="${escA(String(t.id))}"${String(t.id) === String(trkSel.todo) ? ' selected' : ''}>${esc(t.text)}</option>`).join('')}</select>
+      <button class="trk-go" onclick="trkStart(trkSel.mod, trkSel.todo)">▶ Start</button></div>`;
+  }
+  const blocks = timeBlocks(), now = new Date();
+  const dayMs = sumMap(timeByMod(dayStart(now, 0), dayStart(now, 1), blocks)), wkMs = sumMap(timeByMod(+weekStart(0), +weekStart(1), blocks));
+  h += `<a class="trk-sum" href="#/zeit">Heute ${fmtDur(dayMs)} · Woche ${fmtDur(wkMs)} <span>→</span></a>`;
+  document.querySelectorAll('.trk').forEach(el => { el.innerHTML = h; el.classList.toggle('running', !!r); });
+  const td = $('tToday'); if (td) td.textContent = dayMs >= 60000 ? ` · heute ${fmtDur(dayMs)} erfasst` : '';
+}
+
+function trkTitle() {
+  const r = tlog.running;
+  document.title = r ? `◷ ${fmtClock(Date.now() - r.start).slice(0, -3)} · ${modInfo(r.mod).name} — Cockpit` : 'Cockpit — Tim';
+}
+// Sekundentakt: nur Uhr und Tab-Titel; einmal pro Minute die Summen
+function trkTick() {
+  const r = tlog.running; if (!r) return;
+  document.querySelectorAll('.trk-clock').forEach(e => e.textContent = fmtClock(Date.now() - r.start));
+  trkTitle();
+  const min = Math.floor(Date.now() / 60000);
+  if (min === trkLastMin) return;
+  trkLastMin = min;
+  renderTracker(); if (cur()) renderMTime();
+  const ae = document.activeElement;
+  if (curView === 'time' && !$('ttip').classList.contains('on') && !(ae && ae.closest && ae.closest('#timeView'))) renderTimeView();
+}
+
+// Zeit auf der Modulseite (Kopfzeile)
+function renderMTime() {
+  const m = cur(), el = $('mTime'), b = $('mTrk'); if (!m || !el) return;
+  const blocks = timeBlocks().filter(e => e.mod === m.id);
+  const wk = sumMap(timeByMod(+weekStart(0), +weekStart(1), blocks)), all = blocks.reduce((a, e) => a + e.end - e.start, 0);
+  el.textContent = all >= 60000 ? `◷ ${fmtDur(wk)} diese Woche · ${fmtDur(all)} gesamt` : '';
+  const on = !!tlog.running && tlog.running.mod === m.id;
+  b.textContent = on ? '■ Stoppen' : '▶ Zeit starten'; b.classList.toggle('on', on);
+}
+
+// ── Seite «Zeit»: Wochenübersicht ──
+const WD = ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'];
+function niceStep(max) { const h = 3600000; return [0.25, 0.5, 1, 2, 3, 4, 6, 8, 12].map(x => x * h).find(s => max / s <= 4) || 12 * h; }
+let tDays = [];
+function renderTimeView() {
+  const v = $('timeView'); if (!v) return;
+  hideTip();
+  const ws = weekStart(wkOff), we = weekStart(wkOff + 1), blocks = timeBlocks();
+  tDays = WD.map((n, i) => { const a = dayStart(ws, i), z = dayStart(ws, i + 1); return {n, a, z, by: timeByMod(a, z, blocks)}; });
+  const wk = timeByMod(+ws, +we, blocks), total = sumMap(wk), keys = modOrder(wk);
+  const prev = sumMap(timeByMod(+weekStart(wkOff - 1), +ws, blocks));
+  const todayIdx = wkOff === 0 ? (new Date().getDay() + 6) % 7 : -1;
+  const nDays = wkOff < 0 ? 7 : wkOff > 0 ? 0 : todayIdx + 1;
+  const fmtD = d => d.toLocaleDateString('de-CH', {day:'numeric', month:'short'});
+  const last = new Date(we); last.setDate(last.getDate() - 1);
+  const diff = total - prev;
+
+  let h = `<div class="phead">
+      <span class="mtitle">Zeit</span>
+      <div class="wknav">
+        <button class="bsm" onclick="wkOff--;tEdit=null;renderTimeView()" title="Vorherige Woche">‹</button>
+        <span class="wklbl">KW ${isoWeek(ws)} · ${fmtD(ws)} – ${fmtD(last)}</span>
+        <button class="bsm" onclick="wkOff++;tEdit=null;renderTimeView()" title="Nächste Woche">›</button>
+        ${wkOff ? `<button class="bsm" onclick="wkOff=0;tEdit=null;renderTimeView()">Diese Woche</button>` : ''}
+      </div>
+    </div>
+    <div class="trk trk-page"></div>
+    <div class="tstats">
+      <div class="tstat"><div class="tstat-l">${wkOff ? 'Total' : 'Diese Woche'}</div><div class="tstat-v">${fmtDur(total)}</div><div class="tstat-d">${prev || total ? `${diff >= 0 ? '+' : '−'}${fmtDur(Math.abs(diff))} vs. Vorwoche` : '&nbsp;'}</div></div>
+      <div class="tstat"><div class="tstat-l">Ø pro Tag</div><div class="tstat-v">${nDays ? fmtDur(total / nDays) : '–'}</div><div class="tstat-d">${nDays ? `über ${nDays} Tag${nDays === 1 ? '' : 'e'}` : '&nbsp;'}</div></div>
+      <div class="tstat"><div class="tstat-l">Einträge</div><div class="tstat-v">${blocks.filter(e => e.end > +ws && e.start < +we).length}</div><div class="tstat-d">&nbsp;</div></div>
+    </div>
+    <div class="tgrid">
+      <div class="tcard"><div class="msub"><span class="sec">Stunden pro Tag</span></div>${timeChart(keys, todayIdx)}</div>
+      <div class="tcard"><div class="msub"><span class="sec">Pro Modul</span></div>${timeModTable(wk, keys, total)}</div>
+    </div>
+    <div class="tcard">
+      <div class="msub"><span class="sec">Einträge</span><button class="ql-addbtn" onclick="tEdit='new';renderTimeView()">+ Eintrag nachtragen</button></div>
+      ${tEdit === 'new' ? timeForm(null) : ''}
+      ${timeEntries(blocks, +ws, +we)}
+    </div>`;
+  v.innerHTML = h;
+  renderTracker(true);
+  v.querySelectorAll('.tcol').forEach(c => {
+    const show = e => showTip(+c.dataset.i, e, c);
+    c.addEventListener('pointerenter', show); c.addEventListener('pointermove', show);
+    c.addEventListener('pointerleave', hideTip); c.addEventListener('focus', show); c.addEventListener('blur', hideTip);
+  });
+  const f = v.querySelector('.tent-form input,.tent-form select'); if (f && tEdit) f.focus();
+}
+
+// Gestapelte Säulen pro Tag, eine Farbe pro Modul (2px Lücke zwischen Segmenten)
+function timeChart(keys, todayIdx) {
+  const H = 170, max = Math.max(0, ...tDays.map(d => sumMap(d.by))), step = niceStep(max), top = Math.max(step, Math.ceil(max / step) * step);
+  let g = '';
+  for (let val = 0; val <= top + 1; val += step) g += `<div class="tgl" style="bottom:${val / top * H}px"><span>${(val / 3600000).toLocaleString('de-CH')} h</span></div>`;
+  const cols = tDays.map((d, i) => {
+    const tot = sumMap(d.by), ks = keys.filter(k => d.by.has(k));
+    const barH = tot / top * H, inner = Math.max(0, barH - 2 * (ks.length - 1));
+    const segs = ks.map(k => `<div class="tseg" style="height:${Math.max(1, d.by.get(k) / tot * inner)}px;background:${modInfo(k).color}"></div>`).join('');
+    return `<div class="tcol${i === todayIdx ? ' today' : ''}" data-i="${i}" tabindex="0" aria-label="${d.n}: ${fmtDur(tot)}">
+      ${tot >= 60000 ? `<span class="tcap">${fmtDur(tot)}</span>` : ''}<div class="tstack">${segs}</div></div>`;
+  }).join('');
+  const lbls = tDays.map((d, i) => `<div class="${i === todayIdx ? 'today' : ''}">${d.n}<span>${new Date(d.a).getDate()}.</span></div>`).join('');
+  const legend = keys.length ? `<div class="tleg">${keys.map(k => { const m = modInfo(k); return `<span><i style="background:${m.color}"></i>${esc(m.name)}</span>`; }).join('')}</div>` : '';
+  return `<div class="tch" style="height:${H}px">${g}<div class="tcols">${cols}</div>${max ? '' : '<div class="tempty">Noch keine Zeit erfasst</div>'}</div><div class="tdays">${lbls}</div>${legend}`;
+}
+
+function timeModTable(wk, keys, total) {
+  if (!keys.length) return '<div class="mempty">Starte den Tracker, dann erscheint hier, wie sich deine Zeit auf die Module verteilt.</div>';
+  return [...keys].sort((a, b) => wk.get(b) - wk.get(a)).map(k => {
+    const m = modInfo(k), ms = wk.get(k), pct = Math.round(ms / total * 100);
+    const name = `<span class="m-dot" style="background:${m.color}"></span>${esc(m.name)}`;
+    return `<div class="tmrow">${k && modById(k) ? `<a class="tmname" href="#/m/${m.id}">${name}</a>` : `<span class="tmname">${name}</span>`}
+      <span class="tmdur">${fmtDur(ms)}</span><span class="tmpct">${pct}%</span>
+      <div class="tmbar"><div style="width:${ms / total * 100}%;background:${m.color}"></div></div></div>`;
+  }).join('');
+}
+
+// Einträge der Woche, neueste zuerst, nach Tag gruppiert; klicken = bearbeiten
+function timeEntries(blocks, a, z) {
+  const list = blocks.filter(e => e.end > a && e.start < z).sort((x, y) => y.start - x.start);
+  if (!list.length) return '<div class="mempty">Keine Einträge in dieser Woche.</div>';
+  let h = '', day = null;
+  list.forEach(e => {
+    const d = new Date(e.start).toDateString();
+    if (d !== day) {
+      day = d; const ds = dayStart(e.start, 0);
+      const dayTot = sumMap(timeByMod(ds, dayStart(e.start, 1), blocks));
+      h += `<div class="tday-h"><span>${new Date(e.start).toLocaleDateString('de-CH', {weekday:'long', day:'numeric', month:'long'})}</span><span>${fmtDur(dayTot)}</span></div>`;
+    }
+    if (tEdit === e.id) { h += timeForm(e); return; }
+    const m = modInfo(e.mod), id = jsArg(e.id);
+    h += `<div class="tent${e.live ? ' live' : ''}"${e.live ? '' : ` onclick="tEdit=${id};renderTimeView()" title="Klicken zum Bearbeiten"`}>
+      <span class="tent-t">${hhmm(e.start)} – ${e.live ? 'jetzt' : hhmm(e.end)}</span>
+      <span class="tent-m"><span class="m-dot" style="background:${m.color}"></span>${esc(m.name)}</span>
+      <span class="tent-x">${esc(e.text || '')}</span>
+      <span class="tent-d">${e.live ? '<span class="trk-live-lbl">läuft</span> ' : ''}${fmtDur(e.end - e.start)}</span>
+      ${e.live ? '' : `<button class="tdel" onclick="event.stopPropagation();timeDel(${id})" title="Eintrag löschen">×</button>`}
+    </div>`;
+  });
+  return h;
+}
+
+// Formular zum Nachtragen / Bearbeiten (Ende vor Beginn = über Mitternacht)
+function timeForm(e) {
+  const pad = n => String(n).padStart(2, '0'), d = new Date(e ? e.start : Date.now() - 3600000);
+  const ds = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+  const from = e ? hhmm(e.start) : hhmm(Date.now() - 3600000), to = e ? hhmm(e.end) : hhmm(Date.now());
+  const mod = e ? e.mod : trkSel.mod;
+  const opts = `<option value="">Ohne Modul</option>` + modules.map(m => `<option value="${escA(m.id)}"${m.id === mod ? ' selected' : ''}>${esc(m.name)}</option>`).join('')
+    + (mod && !modById(mod) ? `<option value="${escA(mod)}" selected>Gelöschtes Modul</option>` : '');
+  const key = `onkeydown="if(event.key==='Enter')timeSave();if(event.key==='Escape'){tEdit=null;renderTimeView();}"`;
+  return `<div class="tent-form">
+    <select id="teMod" class="tpsel">${opts}</select>
+    <input id="teDate" type="date" class="ql-in" value="${ds}" ${key}>
+    <input id="teFrom" type="time" class="ql-in" value="${from}" ${key}><span class="tent-dash">–</span><input id="teTo" type="time" class="ql-in" value="${to}" ${key}>
+    <input id="teText" class="ql-in tent-txt" placeholder="Was? (optional)" value="${escA(e && e.text || '')}" ${key}>
+    <button class="ql-ok" onclick="timeSave()">${e ? 'Speichern' : 'Hinzufügen'}</button><button class="ql-cancel" onclick="tEdit=null;renderTimeView()">✕</button>
+  </div>`;
+}
+function timeSave() {
+  const date = $('teDate').value, from = $('teFrom').value, to = $('teTo').value; if (!date || !from || !to) return;
+  const start = +new Date(`${date}T${from}`); let end = +new Date(`${date}T${to}`);
+  if (end <= start) { const x = new Date(end); x.setDate(x.getDate() + 1); end = +x; }
+  const mod = $('teMod').value, text = $('teText').value.trim();
+  if (tEdit === 'new') tlog.entries.push({id:newId(), mod, ...(text ? {text} : {}), start, end});
+  else {
+    const e = tlog.entries.find(x => x.id === tEdit); if (!e) { tEdit = null; renderTimeView(); return; }
+    Object.assign(e, {mod, start, end}); if (text) e.text = text; else { delete e.text; delete e.todo; }
+  }
+  tEdit = null; saveTime(); renderTimeView(); renderTracker(); if (cur()) renderMTime();
+}
+function timeDel(id) { tlog.entries = tlog.entries.filter(e => e.id !== id); saveTime(); renderTimeView(); renderTracker(); if (cur()) renderMTime(); }
+
+// Tooltip pro Tag: Wert zuerst, dann Modul (Inhalt per textContent)
+function showTip(i, ev, col) {
+  const d = tDays[i], tip = $('ttip'); if (!d) return;
+  const tot = sumMap(d.by);
+  tip.replaceChildren();
+  const head = document.createElement('div'); head.className = 'ttip-h';
+  head.textContent = `${new Date(d.a).toLocaleDateString('de-CH', {weekday:'long', day:'numeric', month:'long'})} · ${fmtDur(tot)}`;
+  tip.appendChild(head);
+  if (!tot) { const n = document.createElement('div'); n.className = 'ttip-n'; n.textContent = 'Keine Zeit erfasst'; tip.appendChild(n); }
+  modOrder(d.by).forEach(k => {
+    const m = modInfo(k), row = document.createElement('div'); row.className = 'ttr';
+    const key = document.createElement('i'); key.style.background = m.color;
+    const val = document.createElement('b'); val.textContent = fmtDur(d.by.get(k));
+    const nm = document.createElement('span'); nm.textContent = m.name;
+    row.append(key, val, nm); tip.appendChild(row);
+  });
+  tip.classList.add('on');
+  const r = col.getBoundingClientRect(), w = tip.offsetWidth, hh = tip.offsetHeight;
+  const x = ev && ev.clientX != null && ev.type !== 'focus' ? ev.clientX : r.left + r.width / 2;
+  const y = ev && ev.clientY != null && ev.type !== 'focus' ? ev.clientY : r.top + 20;
+  tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x + 14)) + 'px';
+  tip.style.top = Math.max(8, Math.min(innerHeight - hh - 8, y - hh - 10)) + 'px';
+}
+function hideTip() { const t = $('ttip'); if (t) t.classList.remove('on'); }
+
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init() {
-  tick(); setInterval(tick, 60000);
+  tick(); setInterval(tick, 60000); setInterval(trkTick, 1000);
   loadLocalState(); // inkl. einmaliger Übernahme alter Modul-Aufgaben in die gemeinsame Liste
   await dataLoad();
   renderTodos();
@@ -1538,6 +1952,7 @@ async function init() {
   renderSemBar();
   renderQL();
   route();
+  renderTracker(); trkTitle();
   if (!localStorage.getItem('dash_pat')) setSyncStatus('none');
 }
 
