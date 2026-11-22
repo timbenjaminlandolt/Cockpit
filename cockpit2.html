@@ -467,17 +467,24 @@ const esc = s => String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>
 function prioCol(p){return p==='hoch'?'#ff453a':p==='mittel'?'#0a84ff':'#48484a';}
 
 // ── Sync (GitHub-Repo, Fallback Gist) ──────────────────────────────────────────
+// Beim Laden, beim Zurückkehren zum Tab und bei Speicherkonflikten wird der Stand im
+// Repo per 3-Wege-Merge mit dem lokalen Stand zusammengeführt. Basis ist der zuletzt
+// synchronisierte Stand (dash_sync_base). So bleiben Löschungen und Änderungen von
+// beiden Geräten erhalten, statt dass ein Gerät das andere überschreibt.
 const DATA_FILE = 'data.json';
 const GIST_FILE = 'cockpit_data.json';
 const DEFAULT_REPO = 'timbenjaminlandolt/cockpit-data';
-let syncTimer = null, repoSha = null, savePending = false;
+const BASE_KEY = 'dash_sync_base';
+let syncTimer = null, repoSha = null, savePending = false, saving = false, saveAgain = false, syncGen = 0;
+const staleShas = new Set(); // überholte Repo-Stände dieser Sitzung: verspätete Antworten damit ignorieren
 
 function setSyncStatus(s) {
   const el = $('syncLbl'); if (!el) return;
-  if (s === 'none') { el.textContent = ''; return; }
-  const labels = {syncing:'⟳ Sync …', synced:'✓ Synced', gist:'✓ Synced (Gist)', offline:'✗ Offline'};
+  if (s === 'none') { el.textContent = ''; el.title = ''; return; }
+  const labels = {syncing:'⟳ Sync …', synced:'✓ Synced', gist:'✓ Synced (Gist)', offline:'✗ Offline', denied:'✗ Kein Zugriff'};
   el.textContent = labels[s] || '';
-  el.style.color = s==='offline'?'var(--danger)':(s==='synced'||s==='gist')?'var(--accent)':'var(--t3)';
+  el.title = s === 'denied' ? 'GitHub verweigert den Zugriff: Token abgelaufen oder ohne Rechte aufs Daten-Repo? (⚙ Einstellungen)' : '';
+  el.style.color = (s==='offline'||s==='denied')?'var(--danger)':(s==='synced'||s==='gist')?'var(--accent)':'var(--t3)';
 }
 
 const ghHeaders = pat => ({'Authorization':`token ${pat}`,'Accept':'application/vnd.github+json'});
@@ -487,45 +494,183 @@ const b64enc = s => { let o=''; new TextEncoder().encode(s).forEach(c => o += St
 const b64dec = s => new TextDecoder().decode(Uint8Array.from(atob(s.replace(/\s/g,'')), c => c.charCodeAt(0)));
 const curPayload = () => ({todos, notepad: localStorage.getItem('dash_notepad')||'', modules, links: quickLinks, ...(plan ? {plan} : {})});
 
-function applyData(data) {
-  if (Array.isArray(data.todos)) { todos = data.todos; localStorage.setItem('dash_todos', JSON.stringify(todos)); }
-  if (typeof data.notepad === 'string') localStorage.setItem('dash_notepad', data.notepad);
-  if (Array.isArray(data.modules)) { modules = data.modules.map(normMod); localStorage.setItem('dash_modules', JSON.stringify(modules)); }
-  if (data.plan && Array.isArray(data.plan.sheets) && data.plan.sheets.length) { plan = data.plan; localStorage.setItem('dash_plan', JSON.stringify(plan)); }
-  if (Array.isArray(data.links)) { quickLinks = data.links; localStorage.setItem('dash_ql', JSON.stringify(quickLinks)); }
+// Einheitliche Form der Daten, auch für ältere Stände. Aufgaben, die früher direkt im
+// Modul lagen (m.todos), wandern in die gemeinsame Aufgabenliste (mit Feld mod).
+const clone = x => x === undefined ? undefined : JSON.parse(JSON.stringify(x));
+function normPayload(raw) {
+  const d = clone(raw) || {};
+  const todos = (Array.isArray(d.todos) ? d.todos : []).filter(t => t && typeof t === 'object');
+  const ids = new Set(todos.map(t => String(t.id)));
+  const modules = (Array.isArray(d.modules) ? d.modules : []).filter(m => m && typeof m === 'object').map(m => {
+    (Array.isArray(m.todos) ? m.todos : []).forEach(t => {
+      if (t && typeof t === 'object' && !ids.has(String(t.id))) { ids.add(String(t.id)); todos.push({...t, mod: String(m.id)}); }
+    });
+    return normMod(m);
+  });
+  const out = {todos, notepad: typeof d.notepad === 'string' ? d.notepad : '', modules, links: Array.isArray(d.links) ? d.links : []};
+  if (d.plan && Array.isArray(d.plan.sheets) && d.plan.sheets.length) out.plan = d.plan;
+  return out;
 }
 
-// Liest data.json aus dem Repo. Rückgabe: {state:'ok',data} | {state:'missing'} | {state:'error'}
+// Übernimmt einen (normalisierten) Stand in die App und in den Browser-Speicher
+function setState(d) {
+  todos = d.todos; modules = d.modules; quickLinks = d.links; plan = d.plan || null;
+  localStorage.setItem('dash_todos', JSON.stringify(todos));
+  localStorage.setItem('dash_modules', JSON.stringify(modules));
+  localStorage.setItem('dash_ql', JSON.stringify(quickLinks));
+  localStorage.setItem('dash_notepad', d.notepad);
+  if (plan) localStorage.setItem('dash_plan', JSON.stringify(plan)); else localStorage.removeItem('dash_plan');
+}
+
+function loadLocalState() {
+  const get = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+  setState(normPayload({todos: get('dash_todos', []), notepad: localStorage.getItem('dash_notepad') || '',
+    modules: get('dash_modules', []), links: get('dash_ql', []), plan: get('dash_plan', null)}));
+}
+
+function loadBase() {
+  try { const b = JSON.parse(localStorage.getItem(BASE_KEY)); return b && b.repo === dataRepo() && b.data ? b : null; } catch { return null; }
+}
+function saveBase(data, sha) {
+  try { localStorage.setItem(BASE_KEY, JSON.stringify({repo: dataRepo(), sha, data})); } catch {}
+}
+
+// ── 3-Wege-Merge ──
+const isObj = x => !!x && typeof x === 'object' && !Array.isArray(x);
+function deepEq(a, b) {
+  if (a === b) return true;
+  if (!a || !b || typeof a !== 'object' || typeof b !== 'object' || Array.isArray(a) !== Array.isArray(b)) return false;
+  if (Array.isArray(a)) return a.length === b.length && a.every((x, i) => deepEq(x, b[i]));
+  const ka = Object.keys(a).filter(k => a[k] !== undefined), kb = Object.keys(b).filter(k => b[k] !== undefined);
+  return ka.length === kb.length && ka.every(k => deepEq(a[k], b[k]));
+}
+
+const TEXT_KEYS = new Set(['notepad', 'notes', 'details']); // Freitext: beide Ergänzungen behalten
+// b = gemeinsame Basis, l = lokal, r = Repo. Hat nur eine Seite etwas geändert, gilt diese.
+// Haben beide geändert: Listen eintragsweise, Objekte feldweise; sonst gewinnt lokal.
+function merge3(b, l, r, key) {
+  if (deepEq(l, r)) return l;
+  if (deepEq(l, b)) return r;
+  if (deepEq(r, b)) return l;
+  if (Array.isArray(l) && Array.isArray(r)) return mergeList(Array.isArray(b) ? b : [], l, r);
+  if (isObj(l) && isObj(r)) {
+    const bo = isObj(b) ? b : {}, out = {};
+    new Set([...Object.keys(l), ...Object.keys(r)]).forEach(k => { const v = merge3(bo[k], l[k], r[k], k); if (v !== undefined) out[k] = v; });
+    return out;
+  }
+  if (typeof l === 'string' && typeof r === 'string' && TEXT_KEYS.has(key)) return mergeText(typeof b === 'string' ? b : '', l, r);
+  return l;
+}
+
+// Einträge mit id werden über die id zugeordnet, andere (z.B. Links) über ihren Inhalt
+const itemKey = x => isObj(x) && x.id != null ? 'id:' + x.id : 'v:' + JSON.stringify(x);
+function mergeList(b, l, r) {
+  const mb = new Map(b.map(x => [itemKey(x), x])), ml = new Map(l.map(x => [itemKey(x), x])), mr = new Map(r.map(x => [itemKey(x), x]));
+  const keep = new Map();
+  new Set([...ml.keys(), ...mr.keys()]).forEach(k => {
+    const inB = mb.has(k);
+    if (ml.has(k) && mr.has(k)) keep.set(k, merge3(mb.get(k), ml.get(k), mr.get(k)));
+    // Auf einer Seite gelöscht: nur behalten, wenn die andere Seite den Eintrag inzwischen geändert hat
+    else if (ml.has(k)) { if (!inB || !deepEq(ml.get(k), mb.get(k))) keep.set(k, ml.get(k)); }
+    else if (!inB || !deepEq(mr.get(k), mb.get(k))) keep.set(k, mr.get(k));
+  });
+  // Reihenfolge: hat nur das andere Gerät umsortiert, dessen Reihenfolge übernehmen, sonst die lokale.
+  // Einträge, die nur auf einer Seite vorkommen, landen vor ihrem dortigen Nachfolger (ohne Nachfolger: ans Ende).
+  const seq = list => list.map(itemKey).filter(k => keep.has(k));
+  const both = k => ml.has(k) && mr.has(k);
+  const lOrd = seq(l).filter(both), rOrd = seq(r).filter(both), bOrd = seq(b).filter(both);
+  const [pri, sec] = deepEq(lOrd, bOrd) && !deepEq(rOrd, bOrd) ? [seq(r), seq(l)] : [seq(l), seq(r)];
+  const out = [...new Set(pri)];
+  sec.forEach((k, i) => {
+    if (out.includes(k)) return;
+    const next = sec.slice(i + 1).find(x => out.includes(x));
+    if (next === undefined) out.push(k); else out.splice(out.indexOf(next), 0, k);
+  });
+  return out.map(k => keep.get(k));
+}
+
+// Freitext, auf beiden Geräten geändert: hat jede Seite nur angehängt, beides anhängen;
+// sonst die Zeilen, die nur das andere Gerät neu geschrieben hat, markiert unten anfügen.
+const MERGE_MARK = '──── Ergänzt auf anderem Gerät ────';
+function mergeText(b, l, r) {
+  if (l.startsWith(b) && r.startsWith(b)) {
+    const add = r.slice(b.length);
+    return l + (!l || l.endsWith('\n') || add.startsWith('\n') ? '' : '\n') + add;
+  }
+  const bl = new Set(b.split('\n')), ll = new Set(l.split('\n'));
+  const added = r.split('\n').filter(x => x.trim() && !bl.has(x) && !ll.has(x));
+  return added.length ? l + (l.endsWith('\n') ? '\n' : '\n\n') + MERGE_MARK + '\n' + added.join('\n') : l;
+}
+
+// Führt einen gelesenen Repo-Stand mit dem lokalen zusammen und zeigt das Ergebnis an.
+// noBase: was ohne gespeicherte Basis passiert – 'remote' = Repo übernehmen (erster Sync
+// dieses Geräts), 'union' = beide Seiten vereinen. Rückgabe: true, wenn noch hochzuladen ist.
+function syncIn(res, noBase) {
+  const remote = normPayload(res.data), local = normPayload(curPayload()), base = loadBase();
+  let merged;
+  if (base) merged = merge3(base.data, local, remote);
+  else if (noBase === 'remote') {
+    merged = {...remote};
+    Object.keys(local).forEach(k => { if (res.data?.[k] === undefined) merged[k] = local[k]; }); // Felder, die im Repo noch fehlen
+  } else merged = merge3(undefined, local, remote);
+  if (repoSha && repoSha !== res.sha) staleShas.add(repoSha);
+  repoSha = res.sha; saveBase(remote, res.sha);
+  if (!deepEq(merged, local)) { setState(merged); renderSynced(); }
+  return !deepEq(merged, remote);
+}
+
+// Nach einem Merge neu zeichnen, ohne laufende Eingaben zu stören
+function syncField(el, v) {
+  if (!el || el.value === v) return;
+  const a = el.selectionStart, z = el.selectionEnd; el.value = v;
+  if (document.activeElement === el) el.setSelectionRange(Math.min(a, v.length), Math.min(z, v.length));
+}
+function renderSynced() {
+  const ae = document.activeElement;
+  if (!(ae && ae.classList.contains('edit-in') && ae.closest('#tScr'))) renderTodos();
+  renderQL();
+  syncField($('notepad'), localStorage.getItem('dash_notepad') || '');
+  const m = cur();
+  if (m && ae && ae.id === 'mNotes') syncField(ae, m.notes);
+  if (m && ae && ae.classList.contains('tpta')) { const t = m.topics.find(t => t.id === ae.dataset.id); if (t) syncField(ae, t.details || ''); }
+  refreshModules();
+}
+
+// Liest data.json. Rückgabe: {state:'ok',data,sha} | {state:'missing'} (404) | {state:'denied'} (401/403) | {state:'error'}
 async function repoRead(pat) {
   try {
     const r = await fetch(repoUrl(), {headers: ghHeaders(pat), cache: 'no-store'});
-    if (r.status === 404 || r.status === 401 || r.status === 403) return {state:'missing'};
+    if (r.status === 404) return {state:'missing'};
+    if (r.status === 401 || r.status === 403) return {state:'denied'};
     if (!r.ok) return {state:'error'};
     const d = await r.json();
-    repoSha = d.sha;
-    return {state:'ok', data: JSON.parse(b64dec(d.content || '') || '{}')};
+    return {state:'ok', sha: d.sha, data: JSON.parse(b64dec(d.content || '') || '{}')};
   } catch { return {state:'error'}; }
 }
 
-async function repoWrite(pat) {
-  const body = {message: 'Cockpit sync', content: b64enc(JSON.stringify(curPayload(), null, 2))};
-  if (repoSha) body.sha = repoSha;
-  const r = await fetch(repoUrl(), {method:'PUT', headers:{...ghHeaders(pat),'Content-Type':'application/json'}, body: JSON.stringify(body)});
-  if (r.ok) repoSha = (await r.json()).content.sha;
-  return r.status;
+async function repoWrite(pat, payload) {
+  try {
+    const body = {message: 'Cockpit sync', content: b64enc(JSON.stringify(payload, null, 2))};
+    if (repoSha) body.sha = repoSha;
+    const r = await fetch(repoUrl(), {method:'PUT', headers:{...ghHeaders(pat),'Content-Type':'application/json'}, body: JSON.stringify(body)});
+    if (r.ok) {
+      const sha = (await r.json()).content.sha;
+      if (repoSha) staleShas.add(repoSha);
+      repoSha = sha; saveBase(payload, sha);
+    }
+    return r.status;
+  } catch { return 0; }
 }
 
 async function gistLoad() {
   const pat = localStorage.getItem('dash_pat'), gid = localStorage.getItem('dash_gist');
-  if (!pat || !gid) return false;
+  if (!pat || !gid) return null;
   try {
     const r = await fetch(`https://api.github.com/gists/${gid}`, {headers: ghHeaders(pat)});
-    if (!r.ok) return false;
+    if (!r.ok) return null;
     const content = (await r.json()).files?.[GIST_FILE]?.content;
-    if (!content) return false;
-    applyData(JSON.parse(content));
-    return true;
-  } catch { return false; }
+    return content ? JSON.parse(content) : null;
+  } catch { return null; }
 }
 
 async function gistSave() {
@@ -540,60 +685,65 @@ async function gistSave() {
 async function dataLoad() {
   const pat = localStorage.getItem('dash_pat');
   if (!pat) return false;
+  const base = loadBase();
+  repoSha = base ? base.sha : null;
   setSyncStatus('syncing');
+  const gen = syncGen;
   const res = await repoRead(pat);
+  if (gen !== syncGen || saving) return true; // inzwischen wurde gespeichert (und dabei zusammengeführt)
   if (res.state === 'ok') {
-    applyData(res.data); setSyncStatus('synced');
-    // Links lagen früher nur im Browser: beim ersten Laden ins Repo übernehmen
-    if (!Array.isArray(res.data.links) && quickLinks.length) scheduleSave();
+    if (staleShas.has(res.sha)) { setSyncStatus('synced'); return true; }
+    if (base && res.sha === base.sha) {
+      // Repo unverändert seit dem letzten Sync: nur noch nicht hochgeladene lokale Änderungen nachholen
+      if (!deepEq(normPayload(curPayload()), base.data)) scheduleSave();
+    } else if (syncIn(res, 'remote')) scheduleSave();
+    setSyncStatus('synced');
     return true;
   }
+  if (res.state === 'denied') { setSyncStatus('denied'); return false; }
   if (res.state === 'error') { setSyncStatus('offline'); return false; }
-  // Repo-Datei fehlt noch (oder PAT ohne Repo-Recht): alten Gist laden und ins Repo übernehmen
-  await gistLoad();
+  // data.json fehlt im Repo: neu anlegen (beim allerersten Mal vorher den alten Gist übernehmen)
+  repoSha = null;
+  if (!base) { const g = await gistLoad(); if (g) syncIn({data: g, sha: null}, 'remote'); }
   scheduleSave();
   return true;
 }
 
 async function dataSave() {
+  if (saving) { saveAgain = true; return; }
   const pat = localStorage.getItem('dash_pat');
   if (!pat) { savePending = false; return; }
+  saving = true; savePending = false; syncGen++;
   setSyncStatus('syncing');
   try {
-    let st = await repoWrite(pat);
-    if (st === 409 || st === 422) {
-      // Datei wurde inzwischen anderswo geändert: dort neu angelegte Aufgaben übernehmen, dann erneut speichern
+    let st = await repoWrite(pat, normPayload(curPayload()));
+    // Konflikt: data.json wurde inzwischen auf einem anderen Gerät geändert → zusammenführen, erneut speichern
+    for (let i = 0; (st === 409 || st === 422) && i < 3; i++) {
       const res = await repoRead(pat);
-      if (res.state === 'ok' && Array.isArray(res.data.todos)) {
-        const ids = new Set(todos.map(t => t.id));
-        const added = res.data.todos.filter(t => !ids.has(t.id));
-        if (added.length) { todos = [...todos, ...added]; localStorage.setItem('dash_todos', JSON.stringify(todos)); renderTodos(); }
-      }
-      if (res.state === 'ok' && Array.isArray(res.data.modules)) {
-        const mids = new Set(modules.map(m => m.id));
-        const addedM = res.data.modules.filter(m => !mids.has(m.id)).map(normMod);
-        if (addedM.length) { modules = [...modules, ...addedM]; localStorage.setItem('dash_modules', JSON.stringify(modules)); renderModRow(); }
-      }
-      st = await repoWrite(pat);
+      if (res.state !== 'ok') break;
+      syncIn(res, 'union');
+      st = await repoWrite(pat, normPayload(curPayload()));
     }
     if (st === 200 || st === 201) setSyncStatus('synced');
     else if (await gistSave()) setSyncStatus('gist');
-    else setSyncStatus('offline');
+    else setSyncStatus(st === 401 || st === 403 ? 'denied' : 'offline');
   } catch { setSyncStatus('offline'); }
-  savePending = false;
+  saving = false; syncGen++;
+  if (saveAgain) { saveAgain = false; dataSave(); }
 }
 
 function scheduleSave() { savePending = true; clearTimeout(syncTimer); syncTimer = setTimeout(dataSave, 2000); }
 
-// Beim Zurückkehren zum Tab neu laden, damit extern eingetragene Aufgaben erscheinen
+// Tab verlassen: Ausstehendes sofort speichern. Zurückkehren: Änderungen anderer Geräte holen.
 document.addEventListener('visibilitychange', async () => {
-  if (document.hidden || savePending || !repoSha) return;
+  if (document.hidden) { if (savePending) { clearTimeout(syncTimer); dataSave(); } return; }
+  if (saving || !repoSha) return;
   const pat = localStorage.getItem('dash_pat'); if (!pat) return;
+  const gen = syncGen;
   const res = await repoRead(pat);
-  if (res.state !== 'ok' || savePending) return;
-  applyData(res.data); renderTodos(); renderQL();
-  if (document.activeElement !== $('notepad')) loadNotepad();
-  refreshModules();
+  if (res.state !== 'ok' || gen !== syncGen || saving || res.sha === repoSha || staleShas.has(res.sha)) return;
+  if (syncIn(res, 'union')) scheduleSave();
+  setSyncStatus('synced');
 });
 
 // ── Setup ──────────────────────────────────────────────────────────────────────
@@ -614,70 +764,92 @@ function tick() {
   $('dlbl').textContent = n.toLocaleDateString('de-CH',{weekday:'long',day:'numeric',month:'long'});
 }
 
-// ── Todo ───────────────────────────────────────────────────────────────────────
-let todos = (()=>{try{return JSON.parse(localStorage.getItem('dash_todos')||'[]');}catch{return[];}})();
-let dragTodoSrcIdx = null;
+// ── Aufgaben ───────────────────────────────────────────────────────────────────
+// Eine gemeinsame Liste für Startseite und Modulseiten: {id, text, done, priority, mod?}
+// Die Startseite zeigt alle Aufgaben, eine Modulseite die mit mod === Modul-ID.
+let todos = [];
+let dragTodoSrc = null;
 let doneOpen = (()=>{try{return localStorage.getItem('dash_done_open')==='1';}catch{return false;}})();
 function toggleDone(){doneOpen=!doneOpen;try{localStorage.setItem('dash_done_open',doneOpen?'1':'0');}catch{}renderTodos();if(cur())renderMTodos();}
 const doneHead=(n,clr)=>`<div class="secdonerow${doneOpen?' open':''}" onclick="toggleDone()"><span class="secdone"><span class="secarrow">▸</span> Erledigt (${n})</span>${doneOpen?`<button class="clrdone" onclick="event.stopPropagation();${clr}()">Alle löschen</button>`:''}</div>`;
 
-function saveTodos(){localStorage.setItem('dash_todos',JSON.stringify(todos));scheduleSave();}
-function todoAdd(){const inp=$('tIn'),text=inp.value.trim();if(!text)return;const mod=$('tMod').value;todos.push({id:Date.now(),text,done:false,priority:$('tPrio').value,...(mod?{mod}:{})});saveTodos();inp.value='';renderTodos();}
-function todoToggle(id){const t=todos.find(t=>t.id===id);if(t)t.done=!t.done;saveTodos();renderTodos();}
-function todoDel(id){todos=todos.filter(t=>t.id!==id);saveTodos();renderTodos();}
-function clearDoneTodos(){todos=todos.filter(t=>!t.done);saveTodos();renderTodos();}
+const jsArg = v => escA(JSON.stringify(v)); // Wert als JS-Argument in einem onclick-Attribut
+const todoById = id => todos.find(t => String(t.id) === String(id));
+// Nach jeder Änderung: speichern und überall neu zeichnen (Startseite, Modulseite, Zähler in der Sidebar)
+function todosChanged(){localStorage.setItem('dash_todos',JSON.stringify(todos));scheduleSave();renderTodos();if(cur())renderMTodos();renderModRow();}
+function todoAdd(){const inp=$('tIn'),text=inp.value.trim();if(!text)return;const mod=$('tMod').value;todos.push({id:Date.now(),text,done:false,priority:$('tPrio').value,...(mod?{mod}:{})});inp.value='';todosChanged();}
+function todoToggle(id){const t=todoById(id);if(t)t.done=!t.done;todosChanged();}
+function todoDel(id){todos=todos.filter(t=>String(t.id)!==String(id));todosChanged();}
+function clearDoneTodos(){todos=todos.filter(t=>!t.done);todosChanged();}
 
 function editTodo(id,el){
-  const t=todos.find(t=>t.id===id);if(!t||t.done)return;
+  const t=todoById(id);if(!t||t.done)return;
   const inp=document.createElement('input');inp.className='edit-in';inp.value=t.text;
   el.replaceWith(inp);inp.focus();inp.select();
-  function commit(){const v=inp.value.trim();if(v){t.text=v;saveTodos();}renderTodos();}
-  inp.onblur=commit;inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape')renderTodos();};
+  const rerender=()=>{renderTodos();if(cur())renderMTodos();};
+  // Aufgabe erst beim Übernehmen nachschlagen: ein Sync kann die Liste inzwischen ersetzt haben
+  inp.onblur=()=>{const v=inp.value.trim(),t2=todoById(id);if(v&&t2&&v!==t2.text){t2.text=v;todosChanged();}else rerender();};
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();if(e.key==='Escape'){inp.onblur=null;rerender();}};
 }
 
-function todoDrop(toIdx,el){
+// Umsortieren innerhalb der sichtbaren offenen Aufgaben (Startseite: alle, Modulseite: nur dieses Modul).
+// Die übrigen Aufgaben behalten ihren Platz in der gemeinsamen Liste.
+function todoDrop(toId,el,mod){
   el.classList.remove('dragover');
-  if(dragTodoSrcIdx===null||dragTodoSrcIdx===toIdx)return;
-  const pending=todos.filter(t=>!t.done);
-  const[moved]=pending.splice(dragTodoSrcIdx,1);pending.splice(toIdx,0,moved);
-  todos=[...pending,...todos.filter(t=>t.done)];saveTodos();renderTodos();dragTodoSrcIdx=null;
+  const src=dragTodoSrc;dragTodoSrc=null;
+  if(src===null||String(src)===String(toId))return;
+  const scope=todos.filter(t=>!t.done&&(!mod||t.mod===mod)),seq=[...scope];
+  const i=seq.findIndex(t=>String(t.id)===String(src)),j=seq.findIndex(t=>String(t.id)===String(toId));
+  if(i<0||j<0)return;
+  const[moved]=seq.splice(i,1);seq.splice(j,0,moved);
+  const inScope=new Set(scope);let k=0;
+  todos=todos.map(t=>inScope.has(t)?seq[k++]:t);
+  todosChanged();
 }
 
 // Modul-Etikett: verlinkt auf die Modulseite, falls die Aufgabe einem Modul zugeordnet ist
 function todoTag(t){const m=t.mod&&modById(t.mod);return m?`<a class="ttag" href="#/m/${m.id}" style="color:${m.color};border-color:${m.color}55">${esc(m.name)}</a>`:'';}
 
-function renderTodos(){
-  const pending=todos.filter(t=>!t.done),done=todos.filter(t=>t.done);
-  $('tCount').textContent=pending.length+(pending.length===1?' Aufgabe':' Aufgaben');
+// Zeilen einer Aufgabenliste. onMod = Modul-ID auf der Modulseite (dort ohne Modul-Etikett, mit Priorität)
+function todoRowsHtml(list,onMod,clr){
+  const pending=list.filter(t=>!t.done),done=list.filter(t=>t.done),mArg=onMod?','+jsArg(onMod):'';
   let h='';
-  if(!todos.length){h='<div class="noitem">Keine Aufgaben</div>';}
-  else{
-    pending.forEach((t,i)=>{
-      h+=`<div class="nitem" draggable="true"
-        ondragstart="dragTodoSrcIdx=${i}"
-        ondragenter="this.classList.add('dragover')"
-        ondragleave="this.classList.remove('dragover')"
-        ondragover="event.preventDefault()"
-        ondrop="todoDrop(${i},this)">
-        <span class="nhandle">⠿</span>
-        <div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="todoToggle(${t.id})"></div>
-        <span class="ttx" ondblclick="editTodo(${t.id},this)">${esc(t.text)}</span>
-        ${todoTag(t)}
-        <button class="tdel" onclick="todoDel(${t.id})">×</button>
+  pending.forEach(t=>{
+    const id=jsArg(t.id);
+    h+=`<div class="nitem" draggable="true"
+      ondragstart="dragTodoSrc=${id}"
+      ondragenter="this.classList.add('dragover')"
+      ondragleave="this.classList.remove('dragover')"
+      ondragover="event.preventDefault()"
+      ondrop="todoDrop(${id},this${mArg})">
+      <span class="nhandle">⠿</span>
+      <div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="todoToggle(${id})"></div>
+      ${onMod
+        ?`<span style="flex:1;font-size:12px;color:var(--t1)" ondblclick="editTodo(${id},this)">${esc(t.text)}</span>
+      <span class="tptag" style="color:${prioCol(t.priority)}">${esc(t.priority||'')}</span>`
+        :`<span class="ttx" ondblclick="editTodo(${id},this)">${esc(t.text)}</span>
+      ${todoTag(t)}`}
+      <button class="tdel" onclick="todoDel(${id})">×</button>
+    </div>`;
+  });
+  if(done.length){
+    h+=doneHead(done.length,clr);
+    if(doneOpen)done.forEach(t=>{
+      const id=jsArg(t.id);
+      h+=`<div class="titem">
+        <div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="todoToggle(${id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
+        <span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span>
+        <button class="tdel" onclick="todoDel(${id})">×</button>
       </div>`;
     });
-    if(done.length){
-      h+=doneHead(done.length,'clearDoneTodos');
-      if(doneOpen)done.forEach(t=>{
-        h+=`<div class="titem">
-          <div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="todoToggle(${t.id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
-          <span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span>
-          <button class="tdel" onclick="todoDel(${t.id})">×</button>
-        </div>`;
-      });
-    }
   }
-  $('tScr').innerHTML=h;
+  return h;
+}
+
+function renderTodos(){
+  const n=todos.filter(t=>!t.done).length;
+  $('tCount').textContent=n+(n===1?' Aufgabe':' Aufgaben');
+  $('tScr').innerHTML=todos.length?todoRowsHtml(todos,null,'clearDoneTodos'):'<div class="noitem">Keine Aufgaben</div>';
 }
 
 // ── Notepad ────────────────────────────────────────────────────────────────────
@@ -745,7 +917,7 @@ function renderSemBar() {
 }
 
 // ── Links (Sidebar; auf dem Handy unter den Notizen) ───────────────────────────
-let quickLinks = (()=>{try{return JSON.parse(localStorage.getItem('dash_ql')||'[]');}catch{return[];}})();
+let quickLinks = []; // wird in init() aus dem Browser-Speicher geladen
 let qlAdding = false;
 
 function saveQL() { localStorage.setItem('dash_ql', JSON.stringify(quickLinks)); scheduleSave(); }
@@ -774,19 +946,20 @@ function qlConfirm() {
 }
 
 // ── Module ─────────────────────────────────────────────────────────────────────
-// Jedes Modul: {id, name, color, links:[{label,url}], todos:[{id,text,done,priority}], dates:[{id,title,date,type}], notes}
+// Jedes Modul: {id, name, color, links:[{label,url}], dates:[{id,title,date,type}], notes, info, exam, topics}
+// (Aufgaben eines Moduls liegen in der gemeinsamen Liste todos, mit mod = Modul-ID)
 const MCOLORS = ['#0a84ff','#30d158','#ff9f0a','#bf5af2','#ff375f','#64d2ff','#ffd60a','#ac8e68'];
 const DTYPES = {exam:{lbl:'Prüfung',col:'#ff9f0a'}, deadline:{lbl:'Abgabe',col:'#ff453a'}, event:{lbl:'Termin',col:'#0a84ff'}};
 function normMod(m) {
   return {id:String(m.id), name:String(m.name||'Modul'), color:m.color||MCOLORS[0],
-    links:Array.isArray(m.links)?m.links:[], todos:Array.isArray(m.todos)?m.todos:[],
+    links:Array.isArray(m.links)?m.links:[],
     dates:Array.isArray(m.dates)?m.dates:[], notes:typeof m.notes==='string'?m.notes:'',
     info:(m.info&&typeof m.info==='object')?m.info:{}, exam:(m.exam&&typeof m.exam==='object')?m.exam:{},
     topics:Array.isArray(m.topics)?m.topics:[]};
 }
 const escA = s => esc(s).replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-let modules = (()=>{try{return JSON.parse(localStorage.getItem('dash_modules')||'[]').map(normMod);}catch{return[];}})();
-let curMod = null, mAdding = false, dragModSrc = null, dragMTodoSrc = null;
+let modules = []; // wird in init() aus dem Browser-Speicher geladen
+let curMod = null, mAdding = false, dragModSrc = null;
 let mLinkAdding = false, mDateAdding = false, mNoteTimer = null;
 
 const modById = id => modules.find(m => m.id === id);
@@ -798,7 +971,7 @@ function newId() { return Date.now().toString(36) + Math.random().toString(36).s
 function renderModRow() {
   let h = '';
   modules.forEach((m, i) => {
-    const open = m.todos.filter(t => !t.done).length;
+    const open = todos.filter(t => t.mod === m.id && !t.done).length;
     h += `<a class="m-item${curMod===m.id?' active':''}" href="#/m/${m.id}" draggable="true"
       ondragstart="dragModSrc=${i}"
       ondragenter="this.classList.add('dragover')"
@@ -867,6 +1040,7 @@ function refreshModules() {
   renderModRow();
   const ae = document.activeElement;
   if (curMod && !(ae && ae.closest && ae.closest('#modView'))) renderModView();
+  else if (curMod && !(ae && ae.closest && ae.closest('#mtScr'))) renderMTodos();
   if (curView === 'plan' && !(ae && ae.closest && ae.closest('#planView'))) renderPlanView();
 }
 
@@ -1043,7 +1217,8 @@ function modCycleColor() {
 function modDelete() {
   const m = cur(); if (!m) return;
   if (!confirm(`Modul „${m.name}“ mit allen Aufgaben, Notizen, Links und Terminen löschen?`)) return;
-  modules = modules.filter(x => x.id !== m.id); saveModules();
+  modules = modules.filter(x => x.id !== m.id); todos = todos.filter(t => t.mod !== m.id);
+  localStorage.setItem('dash_todos', JSON.stringify(todos)); saveModules(); renderTodos();
   location.hash = '#/';
 }
 
@@ -1106,55 +1281,18 @@ function mDateAdd() {
 }
 function mDateDel(id) { const m = cur(); if (!m) return; m.dates = m.dates.filter(d => d.id !== id); saveModules(); renderMDates(); }
 
-// Aufgaben pro Modul
+// Aufgaben pro Modul: Ausschnitt der gemeinsamen Aufgabenliste (mod === Modul-ID)
 function mtAdd() {
   const m = cur(), inp = $('mtIn'), text = inp.value.trim(); if (!m || !text) return;
-  m.todos.push({id:Date.now(), text, done:false, priority:$('mtPrio').value});
-  inp.value = ''; saveModules(); renderMTodos(); renderModRow();
+  todos.push({id:Date.now(), text, done:false, priority:$('mtPrio').value, mod:m.id});
+  inp.value = ''; todosChanged();
 }
-function mtToggle(id) { const t = cur()?.todos.find(t => t.id === id); if (t) t.done = !t.done; saveModules(); renderMTodos(); renderModRow(); }
-function mtDel(id) { const m = cur(); if (!m) return; m.todos = m.todos.filter(t => t.id !== id); saveModules(); renderMTodos(); renderModRow(); }
-function mtClearDone() { const m = cur(); if (!m) return; m.todos = m.todos.filter(t => !t.done); saveModules(); renderMTodos(); }
-function mtEdit(id, el) {
-  const t = cur()?.todos.find(t => t.id === id); if (!t || t.done) return;
-  const inp = document.createElement('input'); inp.className = 'edit-in'; inp.value = t.text;
-  el.replaceWith(inp); inp.focus(); inp.select();
-  inp.onblur = () => { const v = inp.value.trim(); if (v) { t.text = v; saveModules(); } renderMTodos(); };
-  inp.onkeydown = e => { if (e.key === 'Enter') inp.blur(); if (e.key === 'Escape') { inp.onblur = null; renderMTodos(); } };
-}
-function mtDrop(to, el) {
-  el.classList.remove('dragover');
-  const m = cur(); if (!m || dragMTodoSrc === null || dragMTodoSrc === to) { dragMTodoSrc = null; return; }
-  const pending = m.todos.filter(t => !t.done);
-  const [mv] = pending.splice(dragMTodoSrc, 1); pending.splice(to, 0, mv);
-  m.todos = [...pending, ...m.todos.filter(t => t.done)]; dragMTodoSrc = null; saveModules(); renderMTodos();
-}
+function mtClearDone() { const m = cur(); if (!m) return; todos = todos.filter(t => !(t.done && t.mod === m.id)); todosChanged(); }
 function renderMTodos() {
-  const m = cur(); if (!m) return;
-  const pending = m.todos.filter(t => !t.done), done = m.todos.filter(t => t.done);
-  $('mtCount').textContent = pending.length + ' offen';
-  let h = '';
-  if (!m.todos.length) h = '<div class="noitem">Keine Aufgaben</div>';
-  pending.forEach((t, i) => {
-    h += `<div class="nitem" draggable="true" ondragstart="dragMTodoSrc=${i}" ondragenter="this.classList.add('dragover')" ondragleave="this.classList.remove('dragover')" ondragover="event.preventDefault()" ondrop="mtDrop(${i},this)">
-      <span class="nhandle">⠿</span>
-      <div class="tcheck" style="border-color:${prioCol(t.priority)}" onclick="mtToggle(${t.id})"></div>
-      <span style="flex:1;font-size:12px;color:var(--t1)" ondblclick="mtEdit(${t.id},this)">${esc(t.text)}</span>
-      <span class="tptag" style="color:${prioCol(t.priority)}">${t.priority}</span>
-      <button class="tdel" onclick="mtDel(${t.id})">×</button>
-    </div>`;
-  });
-  if (done.length) {
-    h += doneHead(done.length, 'mtClearDone');
-    if (doneOpen) done.forEach(t => {
-      h += `<div class="titem">
-        <div class="tcheck" style="border-color:var(--t3);background:var(--t3)" onclick="mtToggle(${t.id})"><svg width="7" height="5" viewBox="0 0 7 5"><path d="M1 2.5l1.8 1.8L6 1" stroke="#000" stroke-width="1.4" stroke-linecap="round" fill="none"/></svg></div>
-        <span style="flex:1;font-size:12px" class="tdone-txt">${esc(t.text)}</span>
-        <button class="tdel" onclick="mtDel(${t.id})">×</button>
-      </div>`;
-    });
-  }
-  $('mtScr').innerHTML = h;
+  const m = cur(); if (!m || !$('mtScr')) return;
+  const list = todos.filter(t => t.mod === m.id);
+  $('mtCount').textContent = list.filter(t => !t.done).length + ' offen';
+  $('mtScr').innerHTML = list.length ? todoRowsHtml(list, m.id, 'mtClearDone') : '<div class="noitem">Keine Aufgaben</div>';
 }
 
 // Notizen pro Modul
@@ -1174,7 +1312,7 @@ function mNotesChange() {
 // plan = {active, sheets:[{id, name, cols:[{id,name,type,width}], rows:[{id, c:{colId:value}}]}]}
 const PTYPES = {text:'Text', number:'Zahl', date:'Datum', check:'Checkbox', module:'Modul', status:'Status'};
 const PSTATUS = ['Offen','In Arbeit','Erledigt'];
-let plan = (()=>{try{const p=JSON.parse(localStorage.getItem('dash_plan')||'null');return p&&Array.isArray(p.sheets)&&p.sheets.length?p:null;}catch{return null;}})();
+let plan = null; // wird in init() aus dem Browser-Speicher geladen
 let pDragRow = null, pResizing = null;
 
 function newSheet(name) {
@@ -1393,6 +1531,7 @@ function pExportCsv() {
 // ── Init ───────────────────────────────────────────────────────────────────────
 async function init() {
   tick(); setInterval(tick, 60000);
+  loadLocalState(); // inkl. einmaliger Übernahme alter Modul-Aufgaben in die gemeinsame Liste
   await dataLoad();
   renderTodos();
   loadNotepad();
